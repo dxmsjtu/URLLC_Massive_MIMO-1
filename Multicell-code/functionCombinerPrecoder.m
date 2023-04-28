@@ -61,8 +61,6 @@ if strcmp(combiner, 'S-MMSE')
     end
 end
 
-
-
 %% Go through all channel realizations
 V = nan(M, nbrOfRealizations, K,L);
 W = V;

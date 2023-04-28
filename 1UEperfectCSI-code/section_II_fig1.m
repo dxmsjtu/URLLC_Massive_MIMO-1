@@ -1,8 +1,7 @@
 function section_II_fig1(n,b,snr_db,Mlist,nbrOfRealizations)
 % Function section_II_fig1(n,b,snr_db,Mlist,nbrOfRealizations): Generates 
 % Fig. 1(a) and Fig. 1(b) in the paper.
-% 
-% INPUTS:
+%% INPUTS:
 % n = blocklength
 % b = information bits
 % snr_db = SNR [dB]
@@ -27,8 +26,9 @@ if DEBUG == 1
 end
 R = b/n;
 % Definition of functions:
-C = @(p) log2(1+p); %capacity Gaussian channel
-VG = @(p) log2(exp(1))^2 * 2*p./(p+1); %Dispersion Gaussian channel Gaussian inputs
+C = @(p) log2(1+p);                      %capacity Gaussian channel
+VG = @(p) log2(exp(1))^2 * 2*p./(p+1);   %Dispersion Gaussian channel Gaussian inputs
+% （8） of [1].
 vecnorm = @(A)  sqrt(sum(A.*conj(A),1)); %norm of each column in matrix
 % Initializations:
 eps_out = nan(1,length(Mlist));
@@ -56,8 +56,8 @@ for i = 1:length(Mlist)
     g = nan(1,nbrOfRealizations);
     ghat = nan(1,nbrOfRealizations);
     for j=1:nbrOfRealizations
-        sigma_sq(j) = v1(:,j)'*v1(:,j); % effective noise variance
-        g(j) = v1(:,j)' * H1(:,j) ; % effective channel
+        sigma_sq(j) = v1(:,j)'*v1(:,j);  % effective noise variance
+        g(j) = v1(:,j)' * H1(:,j) ;      % effective channel
         ghat(j) = v1(:,j)' * hhat1(:,j); % effective channel estimate (Perf. CSI)
     end
     %-------------------------------------
@@ -66,9 +66,9 @@ for i = 1:length(Mlist)
     [eps_rcus_sp(i), s_val] = golden_search(f, START_INT, END_INT, TOL);
     
     if eps_rcus_sp(i) > 1e-3 % We only compute real RCUs for large epsilon
-        [nz,nv,ng]=generateRVs(rho, n, M, nbrOfRealizations); % RVs involved in info. density
+        [nz,nv,ng]=generateRVs(rho, n, M, nbrOfRealizations);         % RVs involved in info. density
         i_s = @(s) -s*nz + (s./(1+s*rho*ng)).*nv + n*log(1+s*rho*ng); % generalized info. density
-        error_val = @(s) mean(exp(-max(0, i_s(s) - log(2^b-1)))); % Exact RCUs
+        error_val = @(s) mean(exp(-max(0, i_s(s) - log(2^b-1))));     % Exact RCUs
         [eps_rcus(i), s_val(i)]=golden_search(error_val,  1e-2, 2, 1e-4); % Optimization over s
     end
     %-------------------------------------
@@ -141,12 +141,12 @@ for j = 1:nbrOfRealizations
     ghat = ghat_list(j);
     sigma_sq = sigma_sq_list(j);
     % Parameters needed to obtain the CGF and then compute saddlepoint:
-    betaA_ul = s*rho*abs(g-ghat)^2 + s*sigma_sq;
-    betaB_ul = s*(rho*abs(g)^2 + sigma_sq) / (1+s*rho*abs(ghat)^2);
+    betaA_ul = s*rho*abs(g-ghat)^2 + s*sigma_sq; % (12) of [1]
+    betaB_ul = s*(rho*abs(g)^2 + sigma_sq) / (1+s*rho*abs(ghat)^2);% (13) of [1]
     
-    sigma_v = abs(g)^2 *rho + sigma_sq;
-    gamma = s/(1 + s*rho*abs(ghat)^2);
-    nu_ul = s*gamma*abs(sigma_v - rho* g'*ghat)^2 / (betaA_ul*betaB_ul);
+    sigma_v = abs(g)^2 *rho + sigma_sq; % four lines below Appendix B of [1]
+    gamma = s/(1 + s*rho*abs(ghat)^2);  % five lines below Appendix B of [1]
+    nu_ul = s*gamma*abs(sigma_v - rho* g'*ghat)^2 / (betaA_ul*betaB_ul);% (14) of [1]
     
     preterm_ul = log(1+s*rho * abs(ghat)^2);
     % Saddlepoint approximation:
