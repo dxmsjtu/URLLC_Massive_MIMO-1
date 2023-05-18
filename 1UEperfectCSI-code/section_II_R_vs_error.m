@@ -13,7 +13,7 @@ DEBUG = 1;
 if DEBUG == 1
     snr_db = -24;
     M = 200;
-    nbrOfRealizations = 1e4;
+    nbrOfRealizations = 1e2; %  1e4 default;
     n = 100;
     b_vec = [20:10:140];
 end

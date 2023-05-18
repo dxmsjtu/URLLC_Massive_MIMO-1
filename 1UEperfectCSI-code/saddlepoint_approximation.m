@@ -1,10 +1,7 @@
 function [eps_out, region] = saddlepoint_approximation(n, R, a, b, c, d)
 %n is the blocklength
-%R is in bits
-%a = betaA;
-%b = betaB;
-%c = nu;
-%d = preterm;
+%R is in bits； a = betaA; b = betaB;
+%c = nu; d = preterm;
 
 R=R*log(2); %rate in nats
 
@@ -17,20 +14,18 @@ gamma   = a - b;
 zeta_low = -(gamma + lambda)/xi;
 zeta_high = (lambda - gamma)/xi;
 
-
 % CGF and derivatives as defined in the paper:
-kappa0 = @(t) -t*d - log(1 + (b-a)*t - a*b*(1-c)*t.^2);
-kappa1 = @(t) -(-2*a*b*(1-c)*t +b-a)./(-a*b*(1-c).*t.^2+t*(b-a)+1) - d;
+kappa0 = @(t) -t*d - log(1 + (b-a)*t - a*b*(1-c)*t.^2); % (16) of [1].
+kappa1 = @(t) -(-2*a*b*(1-c)*t +b-a)./(-a*b*(1-c).*t.^2+t*(b-a)+1) - d;% (17) of [1].
 kappa2 = @(t) (b-a-2*a*b*(1-c)*t).^2./(1+(b-a)*t-a*b*(1-c)*t.^2).^2 + (2*a*b*(1-c))./(1+(b-a)*t-a*b*(1-c).*t.^2);
-
+% (18) of [1].
 % Some useful functions:
-Rcr = -kappa1(1); %critical rate
-Is = -kappa1(0); %generalized MI
+Rcr = -kappa1(1); %critical rate， (19) of [1].
+Is =  -kappa1(0); %generalized MI， two lines above (19) of [1].
 
-
-Psi  = @(u,k2) exp(n*u^2*k2/2 + log(qfunc(u*sqrt(n*k2))));
+Psi  = @(u,k2) exp(n*u^2*k2/2 + log(qfunc(u*sqrt(n*k2))));% (20) of [1].
 PsiTilde = @(x,y)  exp(n*x*(Rcr-R+kappa2(1)/2) + log(qfunc(x*sqrt(n*kappa2(1)) + y*n*(Rcr - R)/sqrt(n*kappa2(1)))));
-
+% (23) of [1].
 %--------------------------------------------
 %find start value for stationary equation
 small_tmp = eps;
@@ -63,14 +58,10 @@ else
 end
 
 %--------------------------------------------
-
-
-
 zeta_candidates = interval;
 zeta_candidates(1)=[];
 zeta_candidates(end)=[];
 k1 = kappa1(zeta_candidates);
-
 %make sure we have no infs because we got too close to RoC endpoints
 [~,iduniq] = unique(k1);
 k1 = k1(iduniq);
@@ -79,9 +70,7 @@ idinf = find(isinf(k1));
 k1(idinf) = [];
 zeta_candidates(idinf)= [];
 
-
 zeta = interp1(k1, zeta_candidates, -R); % Finding zeta s.t. kappa'(zeta) = threshold.
-
 
 if zeta > 1 % R < Rcr
     k0 = kappa0(1);
