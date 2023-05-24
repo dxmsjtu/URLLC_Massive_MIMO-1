@@ -28,13 +28,13 @@ if DEBUG == 1
     b = 8*20; %information bits
     rho_db = [-5:1:0]; %transmit power [dB]
     angle2 = deg2rad(-10); % angle of UE2 to BS
-    nbrOfRealizations=1e3; %number of saddlepoint realizations
+    nbrOfRealizations=1e4; %number of saddlepoint realizations
     Mlist = [100]; %the number of antennas considered
     COMBINER = 'MR'; %what combiner to use [MR, M-MMSE, RZF]
     ESTIMATOR = {'MMSE','LS'}; %what estimator to use [LS, MMSE]
     PILOT = 1;%0 => conventional ,1 => pd
     PILOT_CONTAMINATION = 1; %Let the two UEs use the same pilot sequence,for conventional 
-    PILOT_Situation = [2 3]; % for pdra,1:complete collide;2:component collide,3:no collide
+    PILOT_Situation = [3]; % for pdra,1:complete collide;2:component collide,3:no collide
     NO_OF_UEs = 2; % 1 or 2
     UNCORRELATED = 0; %0 = spatial correlation
     BS_CSI = 0; %1 => Perfect CSI at BS

@@ -19,6 +19,7 @@ function sectionIII_fig3(n, np, rho_db, b, M, nbrOfRealizations, COMBINER, PILOT
 % nbrOfPositions = Number of random positions to generate the CDF
 % antennaType = ['ULA','UCA'] uniform linear array or uniform circular array
 % simNO: Simulation number (optional). Used externally to generate more batches and get more points of the CDF
+clc;clear all;
 DEBUG = 1;
 
 if DEBUG == 1
@@ -26,12 +27,15 @@ if DEBUG == 1
     np = 2; %number of pilots
     n = 300; %total number of channle uses
     b = 8*20; %transmission rate
-    rho_db = 10; %transmit power [dBm]
-    nbrOfRealizations=1e5; %number of saddlepoint realizations
+    rho_db = 0; %transmit power [dBm]
+    nbrOfRealizations=1e4; %number of saddlepoint realizations
     nbrOfPositions = 500;
     M = 100; %the number of antennas considered
-    COMBINER = 'M-MMSE'; %what combiner to use [MR, M-MMSE]
+    COMBINER = 'MR'; %what combiner to use [MR, M-MMSE]
+    ESTIMATOR = {'MMSE','LS'}; %what estimator to use [LS, MMSE]
+    PILOT = 1;%0 => conventional ,1 => pd
     PILOT_CONTAMINATION = 1; %Let the two UEs use the same pilot sequence
+    PILOT_Situation = [1]; % for pdra,1:complete collide;2:component collide,3:no collide
     NO_OF_UEs = 2; % 1 or 2
     UNCORRELATED = 0; %0 = spatial correlation
     BS_CSI = 0;
@@ -60,177 +64,193 @@ s_val_dl=nan(1,nbrOfPositions);
 eps_ul = inf(1,nbrOfPositions);
 eps_dl = inf(1,nbrOfPositions);
 
-parfor pos_idx = 1:nbrOfPositions
+for ESTIMATOR_cur = ESTIMATOR
+    for PILOT_Situation_cur = PILOT_Situation
+        for pos_idx = 1:nbrOfPositions
+            % Initializations to avoid potential issues with the parfor:
+            sigma_sq_ul = nan(1,nbrOfRealizations);
+            ghat_dl = nan(1,nbrOfRealizations);
+            sigma_sq_dl = nan(1,nbrOfRealizations);
+            %---------------------------------
+            % Obtain covariance matrices
+            %---------------------------------
+            tic
+            [R,channelGaindB] = functionExampleSetup(L,K,M,ASDdeg, antennaType);%Compute channel statistics for one setup 
+            channelGainOverNoise = channelGaindB - noiseVariancedBm;%Compute the normalized average channel gain
+
+            beta1 = 10^(channelGainOverNoise(1)/10); % Channel gain for UE1 in linear scale
+            R1 = beta1 * R(:,:,1); % Correlation matrix UE1 with channel gain
+
+            beta2 = 10^(channelGainOverNoise(2)/10); % Channel gain for UE2 in linear scale
+            R2 = beta2 * R(:,:,2); % Correlation matrix UE2 with channel gain
+
+            if UNCORRELATED == 1
+                R1 = beta1*eye(M);
+                R2 = beta2*eye(M);
+            end
+
+            %Small scale fading:
+            H1 = sqrt(0.5)*sqrtm(R1)*(randn(M,nbrOfRealizations)+1i*randn(M,nbrOfRealizations));
+            H2 = sqrt(0.5)*sqrtm(R2)*(randn(M,nbrOfRealizations)+1i*randn(M,nbrOfRealizations));
+
+            % Channel estimation:
+            if BS_CSI == 0
+                [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2,  PILOT, PILOT_CONTAMINATION, PILOT_Situation_cur, ESTIMATOR_cur);
+
+            else
+                hhat1 = H1; C1 = zeros(M,M); hhat2 = H2; C2 = zeros(M,M); %Perfect BS CSI
+
+            end
+
+            % Compute combiners/precoders
+            [v1, v2] = createCombiners(rho, hhat1, hhat2, C1, C2, COMBINER, NO_OF_UEs);
+            w1 = v1; %precoding vector for UE1
+            w2 = v2; %precoding vector for UE2
+
+            % Computation of effective noise, effective channel and channel estimation for the UL:
+            g_ul = sum(conj(v1) .* H1,1); % effective channel after combining
+
+            ghat_ul = sum(conj(v1) .* hhat1,1); % effective channel estimate after combining
+
+            % Compute effective noise:
+            if NO_OF_UEs == 1
+                sigma_sq_ul = sum(conj(v1) .* v1,1);
+            elseif NO_OF_UEs==2
+                sigma_sq_ul = rho*abs(sum(conj(v1) .* H2,1)).^2 + sum(conj(v1) .* v1,1);
+            end
+
+            % Computation of effective noise, effective channel and channel estimation for the DL:
+            g_dl = sum(conj(H1) .* w1,1);
+
+            if NO_OF_UEs == 1
+                sigma_sq_dl =  1;
+            elseif NO_OF_UEs==2
+                sigma_sq_dl = rho*abs(sum(conj(H1) .* w2,1)).^2 + 1;
+            end
+
+            if UE_CSI == 0
+                ghat_dl = mean(sum(conj(H1).*w1,1)) * ones(1,nbrOfRealizations); %UE uses channel hardening
+            elseif UE_CSI == 1
+                ghat_dl = sum(conj(H1).*w1,1); %UE knows the precoded channel
+            elseif UE_CSI == 2
+                ghat_dl = sum(conj(hhat1).*w1,1); %UE knows Hhat1 and assumes it to be correct
+            end
+
+            time1=toc;
+            %-----------------------------------------------
+            % Estimate the uplink error probability
+            %-----------------------------------------------
+
+            tic
+
+            rate = b / n_ul; % UL coding rate
+            % Computation of the UL average error probability via the saddlepoint
+            % approximation:
+            f_ul = @(s) getErrorProbabilityUL(s, n_ul, rho, rate, g_ul, ghat_ul, sigma_sq_ul);
+            [eps_ul(pos_idx),  s_val_ul(pos_idx)] = searchForCandidateS(f_ul);
+            time2 = toc;
+
+            %-----------------------------------------------
+            % Estimate the downlink error probability
+            %-----------------------------------------------
+            tic
+            rate = b / n_dl; % DL coding rate
+            % Computation of the DL average error probability via the saddlepoint
+            % approximation:
+            f_dl = @(s) getErrorProbabilityDL(s,n_dl, rho, rate, g_dl, ghat_dl, sigma_sq_dl); 
+            [eps_dl(pos_idx),  s_val_dl(pos_idx)] = searchForCandidateS(f_dl);
+
+            % Print some information about the running times:
+            time4 = toc;
+            disp(['Combining took: ' num2str(time1) ' seconds'])
+            disp(['UL search took: ' num2str(time2) ' seconds'])
+            disp(['DL search took: ' num2str(time4) ' seconds'])
+            disp(['Position: ' num2str(pos_idx) ' out of ' num2str(nbrOfPositions) ', UL: (eps, s) = (' num2str(eps_ul(pos_idx)) ',' num2str(s_val_ul(pos_idx)) '), DL: (eps, s) = (' num2str(eps_dl(pos_idx)) ',' num2str(s_val_dl(pos_idx)) ')']);
+            fprintf('\n')
+
+        end
+        if DEBUG == 1
     
-    % Initializations to avoid potential issues with the parfor:
-    sigma_sq_ul = nan(1,nbrOfRealizations);
-    ghat_dl = nan(1,nbrOfRealizations);
-    sigma_sq_dl = nan(1,nbrOfRealizations);
-    %---------------------------------
-    % Obtain covariance matrices
-    %---------------------------------
-    tic
-    [R,channelGaindB] = functionExampleSetup(L,K,M,ASDdeg, antennaType);%Compute channel statistics for one setup 
-    channelGainOverNoise = channelGaindB - noiseVariancedBm;%Compute the normalized average channel gain
-    
-    beta1 = 10^(channelGainOverNoise(1)/10); % Channel gain for UE1 in linear scale
-    R1 = beta1 * R(:,:,1); % Correlation matrix UE1 with channel gain
-    
-    beta2 = 10^(channelGainOverNoise(2)/10); % Channel gain for UE2 in linear scale
-    R2 = beta2 * R(:,:,2); % Correlation matrix UE2 with channel gain
-    
-    if UNCORRELATED == 1
-        R1 = beta1*eye(M);
-        R2 = beta2*eye(M);
+            figure(1)
+            [cdf, x] = ecdf(eps_ul);
+            loglog(x,cdf)
+            axis([1e-5 1 0.5 1])
+            xlabel('Target error probability')
+            ylabel('Network availability')
+            figure(2)
+            [cdf, x] = ecdf(eps_dl);
+            loglog(x,cdf)
+            axis([1e-5 1 0.5 1])
+            xlabel('Target error probability')
+            ylabel('Network availability')
+        end
+        %--------------------------------------------------------------
+        %   Save file
+        %--------------------------------------------------------------
+        data.np=np;
+        data.n = n;
+        data.rate =  b/n_ul;
+        data.snr_db = rho_db;
+        data.nbrOfRealizations = nbrOfRealizations;
+        data.nbrOfPositions = nbrOfPositions;
+        data.M = M;
+        data.COMBINER_cur = COMBINER_cur;
+        data.PILOT_CONTAMINATION=PILOT_CONTAMINATION;
+        data.NO_OF_UEs = NO_OF_UEs;
+        data.UNCORRELATED = UNCORRELATED;
+        data.s_val_ul = s_val_ul;
+        data.avg_error_ul = eps_ul;
+        data.s_val_dl = s_val_dl;
+        data.avg_error_dl = eps_dl;
+
+        filename = [COMBINER '_M_' num2str(M) '_UEs_' num2str(NO_OF_UEs) '_SNR_' num2str(rho_db) '_np_' num2str(np) '_n_' num2str(n) '.mat'];
+
+
+        if UNCORRELATED == 1
+            filename = ['Uncorrelated_' filename];
+        else
+            filename = ['SpatialCorrelation_' filename];
+        end
+
+         if PILOT == 1 % pd pilots
+            if PILOT_Situation_cur == 1  % for pdra,1:complete collide;2:component collide,3:no collide
+                filename = ['complete collide_' filename];
+            elseif PILOT_Situation_cur == 2
+                filename = ['component collide_' filename];
+            else
+                filename = ['no collide_' filename];
+            end
+            filename = ['pd pilots_' filename];
+        else
+            if PILOT_CONTAMINATION == 1
+                filename = ['pilot_contamination_' filename];
+            else
+                filename = ['no collide_' filename];
+            end
+            filename = ['conventional pilots_' filename];
+        end
+
+        if BS_CSI == 1
+            filename = ['BS_CSI_' filename];
+        end
+
+        if UE_CSI == 1
+            filename = ['UE_CSI_' filename];
+        elseif UE_CSI == 2
+            filename = ['UE_iCSI_' filename];
+        end
+        filename = ['simNr_' num2str(simNO) '_' antennaType '_CDF_' filename];
+        save(filename, 'data', '-v7.3');
+        end
     end
-    
-    %Small scale fading:
-    H1 = sqrt(0.5)*sqrtm(R1)*(randn(M,nbrOfRealizations)+1i*randn(M,nbrOfRealizations));
-    H2 = sqrt(0.5)*sqrtm(R2)*(randn(M,nbrOfRealizations)+1i*randn(M,nbrOfRealizations));
-    
-    % Channel estimation:
-    if BS_CSI == 0
-        [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2, PILOT_CONTAMINATION);
-        
-    else
-        hhat1 = H1; C1 = zeros(M,M); hhat2 = H2; C2 = zeros(M,M); %Perfect BS CSI
-        
-    end
-
-    % Compute combiners/precoders
-    [v1, v2] = createCombiners(rho, hhat1, hhat2, C1, C2, COMBINER, NO_OF_UEs);
-    w1 = v1; %precoding vector for UE1
-    w2 = v2; %precoding vector for UE2
-    
-    % Computation of effective noise, effective channel and channel estimation for the UL:
-    g_ul = sum(conj(v1) .* H1,1); % effective channel after combining
-    
-    ghat_ul = sum(conj(v1) .* hhat1,1); % effective channel estimate after combining
-    
-    % Compute effective noise:
-    if NO_OF_UEs == 1
-        sigma_sq_ul = sum(conj(v1) .* v1,1);
-    elseif NO_OF_UEs==2
-        sigma_sq_ul = rho*abs(sum(conj(v1) .* H2,1)).^2 + sum(conj(v1) .* v1,1);
-    end
-    
-    % Computation of effective noise, effective channel and channel estimation for the DL:
-    g_dl = sum(conj(H1) .* w1,1);
-    
-    if NO_OF_UEs == 1
-        sigma_sq_dl =  1;
-    elseif NO_OF_UEs==2
-        sigma_sq_dl = rho*abs(sum(conj(H1) .* w2,1)).^2 + 1;
-    end
-    
-    if UE_CSI == 0
-        ghat_dl = mean(sum(conj(H1).*w1,1)) * ones(1,nbrOfRealizations); %UE uses channel hardening
-    elseif UE_CSI == 1
-        ghat_dl = sum(conj(H1).*w1,1); %UE knows the precoded channel
-    elseif UE_CSI == 2
-        ghat_dl = sum(conj(hhat1).*w1,1); %UE knows Hhat1 and assumes it to be correct
-    end
-    
-    time1=toc;
-    %-----------------------------------------------
-    % Estimate the uplink error probability
-    %-----------------------------------------------
-    
-    tic
-    
-    rate = b / n_ul; % UL coding rate
-    % Computation of the UL average error probability via the saddlepoint
-    % approximation:
-    f_ul = @(s) getErrorProbabilityUL(s, n_ul, rho, rate, g_ul, ghat_ul, sigma_sq_ul);
-    [eps_ul(pos_idx),  s_val_ul(pos_idx)] = searchForCandidateS(f_ul);
-    time2 = toc;
-    
-    %-----------------------------------------------
-    % Estimate the downlink error probability
-    %-----------------------------------------------
-    tic
-    rate = b / n_dl; % DL coding rate
-    % Computation of the DL average error probability via the saddlepoint
-    % approximation:
-    f_dl = @(s) getErrorProbabilityDL(s,n_dl, rho, rate, g_dl, ghat_dl, sigma_sq_dl); 
-    [eps_dl(pos_idx),  s_val_dl(pos_idx)] = searchForCandidateS(f_dl);
-    
-    % Print some information about the running times:
-    time4 = toc;
-    disp(['Combining took: ' num2str(time1) ' seconds'])
-    disp(['UL search took: ' num2str(time2) ' seconds'])
-    disp(['DL search took: ' num2str(time4) ' seconds'])
-    disp(['Position: ' num2str(pos_idx) ' out of ' num2str(nbrOfPositions) ', UL: (eps, s) = (' num2str(eps_ul(pos_idx)) ',' num2str(s_val_ul(pos_idx)) '), DL: (eps, s) = (' num2str(eps_dl(pos_idx)) ',' num2str(s_val_dl(pos_idx)) ')']);
-    fprintf('\n')
-    
 end
 
 
 
-if DEBUG == 1
-    
-    figure(1)
-    [cdf, x] = ecdf(eps_ul);
-    loglog(x,cdf)
-    axis([1e-5 1 0.5 1])
-    xlabel('Target error probability')
-    ylabel('Network availability')
-    figure(2)
-    [cdf, x] = ecdf(eps_dl);
-    loglog(x,cdf)
-    axis([1e-5 1 0.5 1])
-    xlabel('Target error probability')
-    ylabel('Network availability')
-    
-    
-end
-
-%--------------------------------------------------------------
-%   Save file
-%--------------------------------------------------------------
-data.np=np;
-data.n = n;
-data.rate =  b/n_ul;
-data.snr_db = rho_db;
-data.nbrOfRealizations = nbrOfRealizations;
-data.nbrOfPositions = nbrOfPositions;
-data.M = M;
-data.COMBINER = COMBINER;
-data.PILOT_CONTAMINATION=PILOT_CONTAMINATION;
-data.NO_OF_UEs = NO_OF_UEs;
-data.UNCORRELATED = UNCORRELATED;
-data.s_val_ul = s_val_ul;
-data.avg_error_ul = eps_ul;
-data.s_val_dl = s_val_dl;
-data.avg_error_dl = eps_dl;
-
-filename = [COMBINER '_M_' num2str(M) '_UEs_' num2str(NO_OF_UEs) '_SNR_' num2str(rho_db) '_np_' num2str(np) '_n_' num2str(n) '.mat'];
 
 
-if UNCORRELATED == 1
-    filename = ['Uncorrelated_' filename];
-else
-    filename = ['SpatialCorrelation_' filename];
-end
-
-if PILOT_CONTAMINATION == 1
-    filename = ['pilot_contamination_' filename];
-end
-
-if BS_CSI == 1
-    filename = ['BS_CSI_' filename];
-end
-
-if UE_CSI == 1
-    filename = ['UE_CSI_' filename];
-elseif UE_CSI == 2
-    filename = ['UE_iCSI_' filename];
-end
-filename = ['simNr_' num2str(simNO) '_' antennaType '_CDF_' filename];
-save(filename, 'data', '-v7.3');
 
 
-end
 
 
 function [error_prob, s_val] = searchForCandidateS(f)
@@ -321,33 +341,72 @@ end
 avg_error=  mean(eps_dl); % Average over all the random realizations
 end
 
-function [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2, PILOT_CONTAMINATION)
+function [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2, PILOT_CONTAMINATION, PILOT, PILOT_Situation, ESTIMATOR)
 % Function to estimate the channels according to the book "Massive MIMO
-% Networks" by E. Björnson, J. Hoydis and L. Sanguinetti. 
-sigma_ul = 1;
+% Networks" by E. Bj枚rnson, J. Hoydis and L. Sanguinetti. 
+
+sigma_ul = 1; % noise power
 M = size(H1,1);
 nbrOfRealizations = size(H1,2);
 %---------------------------------
 % Estimate the channel for UE 1 and UE 2 to the BS serving UE 1
 %---------------------------------
+
 Np = sqrt(0.5)*(randn(M,nbrOfRealizations) + 1i*randn(M,nbrOfRealizations)); %noise on the channel estimation
-if PILOT_CONTAMINATION == 1
-    yp1 = rho*np*H1 + rho*np*H2 + sqrt(np*rho)*Np; %UE1 and UE 2 use the same pilot sequence
-    yp2=yp1;
-    Q1 = (rho*np*R1 + rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation (common for UE1 and UE2)
-    Q2=Q1;
-else
-    yp1 = rho*np*H1 + sqrt(np*rho)*Np; %UE 1 and UE2 does not use the same pilot sequence
-    yp2 = rho*np*H2 + sqrt(np*rho)*Np; %UE 1 and UE2 does not use the same pilot sequence
-    Q1 = (rho*np*R1 + sigma_ul*eye(M));  % matrix for MMSE estimation of H1
-    Q2 = (rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2
+
+if PILOT == 1 % pd pilots
+    if PILOT_Situation == 1
+        yp1 = rho*np*H1 + rho*np*H2 + sqrt(np*rho)*Np; %UE1 and UE 2 complete collide
+        yp2=yp1;
+        Q1 = (rho*np*R1 + rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation (common for UE1 and UE2)
+        Q2=Q1;
+    elseif PILOT_Situation == 2
+        yp1 = (rho/sqrt(2))*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 componet collide
+        yp2 = (rho/sqrt(2))*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        Q1 = ((rho/2)*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
+        Q2 = ((rho/2)*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2
+    else
+        yp1 = rho*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 no collide
+        yp2 = rho*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        Q1 = (rho*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
+        Q2 = (rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2   
+    end
+else 
+    if PILOT_CONTAMINATION == 1
+        yp1 = rho*np*H1 + rho*np*H2 + sqrt(np*rho)*Np; %UE1 and UE 2 use the same pilot sequence
+        yp2=yp1;
+        Q1 = (rho*np*R1 + rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation (common for UE1 and UE2)
+        Q2=Q1;
+    else
+        yp1 = rho*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        yp2 = rho*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        Q1 = (rho*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
+        Q2 = (rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2
+    end
 end
-R1Qinv = R1 / Q1;
-R2Qinv = R2 / Q2;
-C1 = R1 - np*rho*R1Qinv*R1; %covariance of Hhat1
-C2 = R2 - np*rho*R2Qinv*R2; %covariance of Hhat2
-hhat1 = R1Qinv*yp1; %estimate H1
-hhat2 = R2Qinv*yp2; %estimate H2
+if strcmp(ESTIMATOR, 'MMSE')
+    R1Qinv = R1 / Q1;
+    R2Qinv = R2 / Q2;
+    
+    C1 = R1 - np*rho*R1Qinv*R1; %covariance of Hhat1,PILOT_Situation == 2鏃跺悗涓?椤硅闄?2,鐢∕R杩樼敤涓嶅埌
+    C2 = R2 - np*rho*R2Qinv*R2; %covariance of Hhat2
+    if PILOT_Situation == 2
+        hhat1 = R1Qinv*yp1/sqrt(2); %estimate H1
+        hhat2 = R2Qinv*yp2/sqrt(2); %estimate H2
+    else
+        hhat1 = R1Qinv*yp1; %estimate H1
+        hhat2 = R2Qinv*yp2; %estimate H2
+    end
+elseif strcmp(ESTIMATOR, 'LS')
+    A_LS = 1/(rho*np);
+    hhat1 = A_LS*yp1; %estimate H1
+    hhat2 = A_LS*yp2; %estimate H2    
+    % The following can be wrongly normalized, but it is not used anyways
+    productAR1 = sqrt(rho)*A_LS * R1; % This sqrt(rho) is introduced to normalize as in Luca's code. Maybe wrong.
+    productAR2 = sqrt(rho)*A_LS * R2;
+    C1 = R1 - (productAR1+productAR1')*sqrt(rho)*np+np*A_LS*Q1*A_LS'; %covariance of Hhat1 
+    C2 = R2 - (productAR2+productAR2')*sqrt(rho)*np+np*A_LS*Q2*A_LS'; %covariance of Hhat2
+end
 end
 
 function [v1, v2] = createCombiners(rho, hhat1, hhat2, C1, C2, COMBINER, NO_OF_UEs)
