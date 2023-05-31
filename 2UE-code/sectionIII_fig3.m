@@ -43,6 +43,7 @@ if DEBUG == 1
     antennaType = 'ULA';
     simNO = 1;
 end
+
 % Initializations:
 ASDdeg = 25; %angular delay spread
 rho = 10^(rho_db/10);  %transmit power [mW]
