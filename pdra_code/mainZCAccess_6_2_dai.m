@@ -1,36 +1,36 @@
 clc;clear all;close all; 
 savefile=1;   
 if savefile==1
-    filenameTmp ='test_corrChannel2_difangledistri_MMSE_PDRAsim_M96_SINR1_PA0.2_Shift32';%¿É½«·ÂÕæ¹Ø¼ü²ÎÊý×÷ÎªÎÄ¼þÃû
+    filenameTmp ='test_corrChannel2_difangledistri_MMSE_PDRAsim_M96_SINR1_PA0.2_Shift32';%ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Ä¼ï¿½ï¿½ï¿½
     mkdir_str=strcat('.\Simulation\',filenameTmp);
-    mkdir(mkdir_str);%Ò»ÔËÐÐ¾Í»áÔÚµ±Ç°ÎÄ¼þ¼ÐÏÂ´´½¨simulationÎÄ¼þ¼Ð
+    mkdir(mkdir_str);%Ò»ï¿½ï¿½ï¿½Ð¾Í»ï¿½ï¿½Úµï¿½Ç°ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½simulationï¿½Ä¼ï¿½ï¿½ï¿½
     mkdir_str1 =strcat(mkdir_str,'\');
-    filenameTmp1= filenameTmp;%ÅäÖÃÎÄ¼þµÄ±£´æµÄÃû×Ö
+    filenameTmp1= filenameTmp;%ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     mkdir_str =strcat(mkdir_str1,filenameTmp1);
     mkdir_str =strcat(mkdir_str,'.m');
     Save_link1=Save_link_file('mainZCAccess_6_2_dai.m',mkdir_str);%
 end
 tic 
-System_type_range=[1];% 0: Ô­À´Ã¿Ö¡ÓÃ»§¹Ì¶¨UserNum = K0*pA£¬  1£º Ã¿Ö¡²»Í¬ÓÃ»§  ²®Å¬Àû·Ö²¼   
+System_type_range=[1];% 0: Ô­ï¿½ï¿½Ã¿Ö¡ï¿½Ã»ï¿½ï¿½Ì¶ï¿½UserNum = K0*pAï¿½ï¿½  1ï¿½ï¿½ Ã¿Ö¡ï¿½ï¿½Í¬ï¿½Ã»ï¿½  ï¿½ï¿½Å¬ï¿½ï¿½ï¿½Ö²ï¿½   
 nbrOfRealizations_range = [1e4]; 
-R_range = [1:1:5]+0;%ZC¸ùÐòÁÐ¸öÊý 256 512
+R_range = [1:1:5]+0;%ZCï¿½ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½ 256 512
 reMethod_range = [0];comSINR_range = [0:1:0];
 pA_range = [20]/10000; M_range = [96]; 
 Weight_range = [1]; SNR_range = [1:1:1];
 SNR_Two_offset_range = [0];K0values_range = [10000]; 
 RepPaper_range = [0]; SequenceLength_range = [839];  %S
-Sequence_offset_range = [0];SINR_range = [1:1:1]; %ãÐÖµ 
-PR_ContrFactor_range=[0] ;% ¹¦¿ØÒò×Ó·¶Î§   0db ÊÇ ÀíÏë¹¦¿Ø  £¬Ñ¡2db
-L_range = [32];% 9 18 32 64shift¸öÊý 
-sim = 1;   % 2: ÀíÂÛÊý¾Ý+·ÂÕæÊý¾Ý£»1£º·ÂÕæ£»0£ºÀíÂÛ£»
+Sequence_offset_range = [0];SINR_range = [1:1:1]; %ï¿½ï¿½Öµ 
+PR_ContrFactor_range=[0] ;% ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó·ï¿½Î§   0db ï¿½ï¿½ ï¿½ï¿½ï¿½ë¹¦ï¿½ï¿½  ï¿½ï¿½Ñ¡2db
+L_range = [32];% 9 18 32 64shiftï¿½ï¿½ï¿½ï¿½ 
+sim = 1;   % 2: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½æ£»0ï¿½ï¿½ï¿½ï¿½ï¿½Û£ï¿½
 ESTIMATOR_range = {'MMSE'}; %what estimator to use [LS, MMSE]
 channel_range = [4];% channel = 1,iid ;% channel = 2,corr; % channel = 3,Random Access corr % 4.Massive MIMO Networks equ(2.23) 
 ASDdeg_range = [25]; %angular delay spread 
 distribution_range = {'Gaussian','Uniform','Laplace'}; % angular distribution
 phaS_range = [pi/9];phaA_upper_range = [pi/3]; % Debug parameter of channel = 2
 correlationFactor_range=[6]/10; % Debug parameter of channel = 3
-method_range = [2]; % method = 1,´«Ò»¸öÂë %  method = 2,´«Á½¸öÂë
-SubcaseNum = 0;  % ·½±ã¼ÆËã£»dxm7311
+method_range = [2]; % method = 1,ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ %  method = 2,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+SubcaseNum = 0;  % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£»dxm7311
 Default = 0;Dofor = 0; SumIndex =0;RandomSeed =0; cellRadius=250;
 tic
 for System_type=System_type_range
@@ -39,40 +39,40 @@ for pA = pA_range  for M = M_range  for Weight = Weight_range for SNR = SNR_rang
 for SNR_Two_offset = SNR_Two_offset_range for K0_range = K0values_range
 for RepPaper = RepPaper_range for SequenceLength = SequenceLength_range 
 for Sequence_offset = Sequence_offset_range for SINR = SINR_range 
-for PR_ContrFactor=PR_ContrFactor_range;%  0 (prefectµÈ¹¦ÂÊPR=1), 5  10
+for PR_ContrFactor=PR_ContrFactor_range;%  0 (prefectï¿½È¹ï¿½ï¿½ï¿½PR=1), 5  10
 for L = L_range for ESTIMATOR = ESTIMATOR_range for channel = channel_range 
 for ASDdeg = ASDdeg_range for distribution = distribution_range;
 for phaS = phaS_range for phaA_upper = phaA_upper_range for correlationFactor = correlationFactor_range
 for method = method_range
-if RandomSeed ==0 rand('state',12345);  randn('state',12345*3);  end% ±£Ö¤Ã¿´ÎSNRÑ­»·£¬³õÊ¼ÖÖ×Ó¶¼Ò»Ñù
+if RandomSeed ==0 rand('state',12345);  randn('state',12345*3);  end% ï¿½ï¿½Ö¤Ã¿ï¿½ï¿½SNRÑ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ó¶ï¿½Ò»ï¿½ï¿½
 Para.System_type = System_type;
 Para.SubcaseNum = SubcaseNum; Para.Default =Default; Para.Dofor = Dofor;
-Para.reMethod=reMethod; Para.comSINR = comSINR;Para.pA = pA ; % ¼¤»î¸ÅÂÊ
+Para.reMethod=reMethod; Para.comSINR = comSINR;Para.pA = pA ; % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 Para.Weight = Weight;Para.SNR = SNR;
 Para.channel = channel;Para.ASDdeg = ASDdeg;Para.distribution = distribution;
 Para.phaS = phaS;Para.phaA_upper = phaA_upper;
 Para.correlationFactor = correlationFactor;Para.cellRadius = cellRadius;
-Para.SINR = SINR ; %ãÐÖµ
+Para.SINR = SINR ; %ï¿½ï¿½Öµ
 Para.PR_ContrFactor=PR_ContrFactor;
-Para.R_range = R_range;%ZC¸ùÐòÁÐ¸öÊý
-Para.L = L;% shift¸öÊý
+Para.R_range = R_range;%ZCï¿½ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½
+Para.L = L;% shiftï¿½ï¿½ï¿½ï¿½
 Para.M = M ;   %Number of BS antennas
 Para.ESTIMATOR = ESTIMATOR;
 Para.SNR_Two_offset = SNR_Two_offset; 
 Para.K0_range = K0_range ; %[100 200 300 500 1000:5000:12000]; % user number
-Para.RepPaper = RepPaper;  % ÔÙÏÖÎÄÕÂÍ¼5 of [1]
+Para.RepPaper = RepPaper;  % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼5 of [1]
 Para.SequenceLength = SequenceLength ;
 Para.Sequence_offset = Sequence_offset ; 
 
-if sim == 1 % È«·ÂÕæ
-    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% È«·ÂÕæ
+if sim == 1 % È«ï¿½ï¿½ï¿½ï¿½
+    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% È«ï¿½ï¿½ï¿½ï¿½
     DataAll = DataSim;
-elseif sim == 0 % È«ÀíÂÛ
+elseif sim == 0 % È«ï¿½ï¿½ï¿½ï¿½
     DataTheory = computeSuccessProbability_theory(method,Para,nbrOfRealizations);
     DataAll = DataTheory;
-elseif sim == 2 % È«ÀíÂÛ+È«·ÂÕæ
+elseif sim == 2 % È«ï¿½ï¿½ï¿½ï¿½+È«ï¿½ï¿½ï¿½ï¿½
     DataTheory = computeSuccessProbability_theory(method,Para,nbrOfRealizations);
-    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% È«·ÂÕæ
+    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% È«ï¿½ï¿½ï¿½ï¿½
     DataAll = [DataTheory;DataSim];
 end
 SumIndex = SumIndex+1; 
@@ -84,13 +84,13 @@ end
 % DataMatrix
 toc; stop = 1;
 if savefile==1
-    % simulationÎÄ¼þ¼ÐÀï£¬±£´æÃ¿´Î·ÂÕæ½á¹û  ,³É  .matÎÄ¼þ
+    % simulationï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï£¬ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Î·ï¿½ï¿½ï¿½ï¿½ï¿½  ,ï¿½ï¿½  .matï¿½Ä¼ï¿½
     strsave= strcat('.\Simulation\',filenameTmp,'\');
     if SumIndex ==1
         filenameTmp1 = strcat(filenameTmp,'.mat');
     end
     strsave= strcat(strsave,filenameTmp1);
-    s=['save ' strsave];% ±£³Ö.mat ÎÄ¼þ£¬ÒÔºó·ÂÕæ½á¹û¿ÉÒÔÔÙ´ÎÈ·ÈÏ,ÒÔºóÒ»¶¨×¢Òâ¿ÉÒÔÔÙ´Î»­Í¼¡£
+    s=['save ' strsave];% ï¿½ï¿½ï¿½ï¿½.mat ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ôºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù´ï¿½È·ï¿½ï¿½,ï¿½Ôºï¿½Ò»ï¿½ï¿½×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù´Î»ï¿½Í¼ï¿½ï¿½
     eval(s);  
 end
 
@@ -129,7 +129,7 @@ end
 % % title_str = strcat('SINR =',num2str(title_SINR(i)),'dB');
 % % title(title_str);set(gca,'Fontname','Monospaced');
 % legend('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30');
-% h  =gcf; % »ñµÃµ±Ç°figure ¾ä±ú£¬´ó¼ÒÐèÒªÓÃÕâ¸öÄ£°åÀ´»­Í¼£¬×ÐÏ¸µ÷ÕûÐ´³öµÄÎÄÕÂ²Å
+% h  =gcf; % ï¿½ï¿½Ãµï¿½Ç°figure ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â²ï¿½
 % MarkerSize=9; LineWidth =2; LineMethod =1; PlotMethod =1; FontSize=22;
 % YLabelFontSize =24;
 % FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 24; axis_ratio=1.5; 
@@ -183,14 +183,14 @@ end
 % plotFig = 0;
 % if plotFig ==1
 %      clear all; close all;
-%     filenameTmp ='test_cor_channel_151';%test_diff_channel_M test_M test_shift ¿É½«·ÂÕæ²ÎÊý×÷ÎªÎÄ¼þÃû
+%     filenameTmp ='test_cor_channel_151';%test_diff_channel_M test_M test_shift ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Ä¼ï¿½ï¿½ï¿½
 %     mkdir_str=strcat('.\Simulation\',filenameTmp);
-%     mkdir(mkdir_str);%Ò»ÔËÐÐ¾Í»áÔÚµ±Ç°ÎÄ¼þ¼ÐÏÂ´´½¨simulationÎÄ¼þ¼Ð
+%     mkdir(mkdir_str);%Ò»ï¿½ï¿½ï¿½Ð¾Í»ï¿½ï¿½Úµï¿½Ç°ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Â´ï¿½ï¿½ï¿½simulationï¿½Ä¼ï¿½ï¿½ï¿½
 %     mkdir_str1 =strcat(mkdir_str,'\');
 %     mkdir_str =strcat(mkdir_str1,filenameTmp);
 %     mkdir_str =strcat(mkdir_str,'.m');
 %     strsave= strcat('.\Simulation\',filenameTmp,'\');
-%     strsave= strcat(strsave,filenameTmp); s=['load ' strsave]; eval(s);% ±£³Ö.mat ÎÄ¼þ£¬ÒÔºó·ÂÕæ½á¹û¿ÉÒÔÔÙ´ÎÈ·ÈÏ,ÒÔºóÒ»¶¨×¢Òâ¿ÉÒÔÔÙ´Î»­Í¼¡£
+%     strsave= strcat(strsave,filenameTmp); s=['load ' strsave]; eval(s);% ï¿½ï¿½ï¿½ï¿½.mat ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ôºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù´ï¿½È·ï¿½ï¿½,ï¿½Ôºï¿½Ò»ï¿½ï¿½×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù´Î»ï¿½Í¼ï¿½ï¿½
 %    DataMatrix
 %     SNR_Matrix =R_range;
 %     CaseNum = length(method_range)*length(L_range)*length(pA_range);
@@ -209,7 +209,7 @@ end
 % %         title_str = strcat('SINR =',num2str(title_SINR(i)),'dB');
 % %         title(title_str);set(gca,'Fontname','Monospaced');
 %         legend('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30');
-%         h  =gcf; % »ñµÃµ±Ç°figure ¾ä±ú£¬´ó¼ÒÐèÒªÓÃÕâ¸öÄ£°åÀ´»­Í¼£¬×ÐÏ¸µ÷ÕûÐ´³öµÄÎÄÕÂ²Å
+%         h  =gcf; % ï¿½ï¿½Ãµï¿½Ç°figure ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â²ï¿½
 %         MarkerSize=9; LineWidth =2; LineMethod =1; PlotMethod =1; FontSize=22;
 %         YLabelFontSize =24;
 %         FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 24; axis_ratio=1.5; %myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize);
@@ -224,7 +224,7 @@ function DataMatrix = computeSuccessProbability_theory(method,Para,nbrOfRealizat
 % [1]Jie Ding et al "Analysis of Non-Orthogonal Sequences for Grant-Free RA
 % With Massive MIMO"
 % clc;clear all;close all;
-% method_range = [1 2]; % "1":ÎÄÕÂ[1];   "2":Proposed
+% method_range = [1 2]; % "1":ï¿½ï¿½ï¿½ï¿½[1];   "2":Proposed
 Weight = Para.Weight;SNR = Para.SNR ;
 Default = Para.Default;channel = Para.channel;
 phaS = Para.phaS ;phaA_upper = Para.phaA_upper;
@@ -234,26 +234,26 @@ comSINR = Para.comSINR;
 M = Para.M;   %Number of BS antennas
 SNR_Two_offset = Para.SNR_Two_offset; 
 K0_range = Para.K0_range; %[100 200 300 500 1000:5000:12000]; % user number
-pA = Para.pA; % ¼¤»î¸ÅÂÊ
-R_range = Para.R_range;%ZC¸ùÐòÁÐ¸öÊý
-RepPaper = Para.RepPaper ;  % ÔÙÏÖÎÄÕÂÍ¼5 of [1]
-L = Para.L;% shift¸öÊý
+pA = Para.pA; % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+R_range = Para.R_range;%ZCï¿½ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½
+RepPaper = Para.RepPaper ;  % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼5 of [1]
+L = Para.L;% shiftï¿½ï¿½ï¿½ï¿½
 SequenceLength = Para.SequenceLength;
 Sequence_offset = Para.Sequence_offset;
-SINR = Para.SINR; %ãÐÖµ
+SINR = Para.SINR; %ï¿½ï¿½Öµ
 SubcaseNum = Para.SubcaseNum;
 reMethod = Para.reMethod ;
 if  Default ==1
     M = 128; SNR_Two_offset = 0;
     K0_range = 10000; %[100 200 300 500 1000:5000:12000]; % user number
-    pA = 0.003; % ¼¤»î¸ÅÂÊ
-    R_range = [1:4]+0;%ZC¸ùÐòÁÐ¸öÊý
-    RepPaper = 0 ;  % ÔÙÏÖÎÄÕÂÍ¼5 of [1]
-    L_range = [9 18 32 64];% shift¸öÊý
-    % L_range = [33 43 53 63 73];% shift¸öÊý
+    pA = 0.003; % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    R_range = [1:4]+0;%ZCï¿½ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½
+    RepPaper = 0 ;  % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼5 of [1]
+    L_range = [9 18 32 64];% shiftï¿½ï¿½ï¿½ï¿½
+    % L_range = [33 43 53 63 73];% shiftï¿½ï¿½ï¿½ï¿½
     SequenceLength = 139;
     Sequence_offset = 1;
-    SINR_range = [3:1:3]; %ãÐÖµ
+    SINR_range = [3:1:3]; %ï¿½ï¿½Öµ
     SubcaseNum =1; 
 end
 sigma2 = 10^(-SNR/10);
@@ -275,13 +275,13 @@ for R = R_range
         N_range = 0:100;
     end
 %     P_N = BernoulliDistribution_Probabilities (K0,pA,N_range);
-%     sum(P_N); %¼¤»îÓÃ»§¸ÅÂÊ
+%     sum(P_N); %ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
     if method ==1
-        Q = R*L; % µ¼ÆµÊý
+        Q = R*L; % ï¿½ï¿½Æµï¿½ï¿½
         alpha = 1-L/Q;
     end
     if method ==2
-        Q = R*L*(L-1)/2; % µ¼ÆµÊý
+        Q = R*L*(L-1)/2; % ï¿½ï¿½Æµï¿½ï¿½
         alpha = 1-L/Q;
     end
     for N = N_range(2:end)
@@ -330,19 +330,19 @@ for R = R_range
                             e1 = n_hat/sqrt(SequenceLength*rhoR);
                         end
                     end
-                    if comSINR == 0% ¹«Ê½£¨1£©
+                    if comSINR == 0% ï¿½ï¿½Ê½ï¿½ï¿½1ï¿½ï¿½
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                         Denominator1 = PR*c0;Denominator2 = sigma2*abs(sum(conj(h_hat),1)).^2;SINR_sim = Numerator./(Denominator1+Denominator2);
                     end  
-                    if comSINR == 1% ¹«Ê½£¨1£©
+                    if comSINR == 1% ï¿½ï¿½Ê½ï¿½ï¿½1ï¿½ï¿½
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                         Denominator1 = PR*c0;Denominator2 = abs(sum(conj(h_hat).*n,1)).^2;SINR_sim = Numerator./(Denominator1+Denominator2);
                     end
-                    if comSINR ==2% ¹«Ê½£¨2£©
+                    if comSINR ==2% ï¿½ï¿½Ê½ï¿½ï¿½2ï¿½ï¿½
                         Denominator1 = PR*abs(sum(conj(e1).*h1,1)).^2;
                         a1 = repmat(conj(h1),[1 1 N-1]).*h(:,:,2:N);b1 = sum(a1,1); c1 = sum(abs(b1).^2,3);
                         Denominator2 = PR*c1;
@@ -365,7 +365,7 @@ for R = R_range
                 q_sim(N) = sum(Pr_one_sim.*P_SINR); % Ô­Ê¼
             end
         end
-        %% Ã¿¸öÓÃ»§Ñ¡ÔñÁ½¸öÕý½»ÐòÁÐ
+        %% Ã¿ï¿½ï¿½ï¿½Ã»ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if method == 2
             T = min(floor(1/4*SequenceLength/10^(SINR/10)),N-1);K_range = 0:T;
             p(N) = (1-1/Q)^(N-1);
@@ -419,7 +419,7 @@ for R = R_range
                             e1 = n_hat/sqrt(SequenceLength*rhoR);
                         end
                     end
-                    if comSINR == 0% ¹«Ê½£¨1£©
+                    if comSINR == 0% ï¿½ï¿½Ê½ï¿½ï¿½1ï¿½ï¿½
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
@@ -446,7 +446,7 @@ for R = R_range
                                 g1_1 = sqrt(PR*SequenceLength/2)*h1+n;
                             end
                         end
-                        if comSINR == 0% ¹«Ê½£¨1£©
+                        if comSINR == 0% ï¿½ï¿½Ê½ï¿½ï¿½1ï¿½ï¿½
                             Numerator_0 = PR*abs(sum(conj(g1_0).*h1,1)).^2;
                             a0 = repmat(conj(g1_0),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                             Denominator1_0 = PR*c0;Denominator2_0 = sigma2*abs(sum(conj(g1_0),1)).^2;
@@ -484,8 +484,8 @@ for R = R_range
         end
     end
     f = p.*q;
-    N_average = round(K0*pA);% Æ½¾ù½ÓÈëÓÃ»§Êý
-    P_success(1,R) = f(N_average);% ÏÈ¶ÔNÈ¡Æ½¾ù£¬ÔÙ¼ÆËã¸ÅÂÊ
+    N_average = round(K0*pA);% Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½
+    P_success(1,R) = f(N_average);% ï¿½È¶ï¿½NÈ¡Æ½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if SubcaseNum == 2
         g = p.*q_sim; 
         P_success(2,R) = g(N_average);
@@ -515,8 +515,8 @@ end
 end
 
 function [P0,P1] = abc(M_range,L_range)
-% M_range ÓÃ»§Êý
-% L_range µ¼ÆµÊý
+% M_range ï¿½Ã»ï¿½ï¿½ï¿½
+% L_range ï¿½ï¿½Æµï¿½ï¿½
 caseindex =0;
 for L = L_range
 for M = M_range
@@ -561,13 +561,13 @@ end
 function P_success = computeSuccessProbability_sim(method,Para,nbrOfRealizations)
 Default = Para.Default; M = Para.M;   %Number of BS antennas
 K0_range = Para.K0_range; %[100 200 300 500 1000:5000:12000]; % user number
-pA = Para.pA; % ¼¤»î¸ÅÂÊ
-R_range = Para.R_range;%ZC¸ùÐòÁÐ¸öÊý
-L = Para.L;% shift¸öÊý
+pA = Para.pA; % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+R_range = Para.R_range;%ZCï¿½ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½
+L = Para.L;% shiftï¿½ï¿½ï¿½ï¿½
 SequenceLength = Para.SequenceLength;
 ESTIMATOR = Para.ESTIMATOR;
-SINR = Para.SINR; %ãÐÖµ
-PR_Control_index=Para.PR_ContrFactor; % ¹¦¿ØÒò×Ó
+SINR = Para.SINR; %ï¿½ï¿½Öµ
+PR_Control_index=Para.PR_ContrFactor; % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 SNR = Para.SNR ;channel = Para.channel; ASDdeg = Para.ASDdeg; distribution = Para.distribution;
 phaS = Para.phaS ;phaA_upper = Para.phaA_upper;
 correlationFactor = Para.correlationFactor ; cellRadius = Para.cellRadius ;
@@ -575,21 +575,21 @@ System_type=Para.System_type ;
 if  Default ==1
     
 end
-sigma2 = 10^(-SNR/10); % ÔëÉù¹¦ÂÊ
-rhoR = 10^(SNR/10);% ·¢Éä¹¦ÂÊ
+sigma2 = 10^(-SNR/10); % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+rhoR = 10^(SNR/10);% ï¿½ï¿½ï¿½ä¹¦ï¿½ï¿½
 PR = rhoR*sigma2;  
 multipathNum = M/2;%path number 
 d=1/2;% antenna distance
-P_success = zeros(1,length(R_range)); % ³õÊ¼»¯½ÓÈë³É¹¦¸ÅÂÊ
+P_success = zeros(1,length(R_range)); % ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½
 PR_ContrFactor =10.^(-[-PR_Control_index:PR_Control_index]/10);%  
 for indProb = 1:length(K0_range)
 %     disp(['K0 values: ' num2str(indProb) ' out of ' num2str(length(K0_range))]);
     K0 = K0_range(indProb); % Extract current value of the number of inactive UEs
-%     UserNum = K0*pA; % ¼¤»îÓÃ»§Êý
+%     UserNum = K0*pA; % ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½
 if System_type==0;newUsersNum = repmat(K0*pA,nbrOfRealizations,1); 
-elseif System_type==1;newUsersNum = binornd(K0,pA,[nbrOfRealizations 1]);end % ¼¤»îÓÃ»§Êý
+elseif System_type==1;newUsersNum = binornd(K0,pA,[nbrOfRealizations 1]);end % ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½
 
-% ZCµ¼Æµ¹¹Ôì
+% ZCï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½
 for R = R_range
 pilot_pool = zeros(SequenceLength,L,R);
 for RootIndex = 1:R
@@ -599,27 +599,27 @@ for RootIndex = 1:R
 end
 
 if method ==1;    Pilot_combination = (1:L)';           end
-if method ==2;    Pilot_combination = nchoosek(1:L,2);  end % ´Ó¼¯ºÏ [1:L] ÖÐÑ¡È¡ 2 ¸öÔªËØµÄËùÓÐ×éºÏ
+if method ==2;    Pilot_combination = nchoosek(1:L,2);  end % ï¿½Ó¼ï¿½ï¿½ï¿½ [1:L] ï¿½ï¿½Ñ¡È¡ 2 ï¿½ï¿½Ôªï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 Number = 0;warning('off');
 for r = 1:nbrOfRealizations 
-    UserNum=newUsersNum(r); % Ã¿Ò»Ö¡¼¤»îÓÃ»§Êý 
+    UserNum=newUsersNum(r); % Ã¿Ò»Ö¡ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ 
 %     if PR_Control_index==0
 %         PR_ContrFactor_user=ones(1,UserNum);
 %     else
 %     PR_ContrFactor =10.^(-[-PR_Control_index:(PR_Control_index*2/UserNum):PR_Control_index]/10);% 
-%     PR_ContrFactor_user=PR_ContrFactor(1:UserNum);% Ã¿Ò»Ö¡ÓÃ»§µÄ¹¦¿ØÒò×Ó
+%     PR_ContrFactor_user=PR_ContrFactor(1:UserNum);% Ã¿Ò»Ö¡ï¿½Ã»ï¿½ï¿½Ä¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 %     end
-    PR_ContrFactor_user=PR_ContrFactor(randi([1,length(PR_ContrFactor)],1,UserNum));% Ã¿Ò»Ö¡ÓÃ»§µÄ¹¦¿ØÒò×Ó
+    PR_ContrFactor_user=PR_ContrFactor(randi([1,length(PR_ContrFactor)],1,UserNum));% Ã¿Ò»Ö¡ï¿½Ã»ï¿½ï¿½Ä¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if method == 1  
         rootSelections = zeros(UserNum,1);pilotSelection = zeros(UserNum,1);
         rootSelections(1) = randperm(R,1);
         index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1) = Pilot_combination(index_SameRoot,:);
         Pilot_combination2 = Pilot_combination;
-%         Pilot_combination2(index) = [];% É¾³ýÓëÓÃ»§1ÏàÍ¬µÄµ¼Æµ
+%         Pilot_combination2(index) = [];% É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½1ï¿½ï¿½Í¬ï¿½Äµï¿½Æµ
         for user_n = 2:UserNum
             rootSelections(user_n,1) = randperm(R,1);
             if rootSelections(user_n,1) == rootSelections(1)
-                % Í¬¸ùÓÃ»§ÓëÓÃ»§1Ñ¡Ôñµ¼Æµ²»Í¬                
+                % Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ã»ï¿½1Ñ¡ï¿½ï¿½Æµï¿½ï¿½Í¬                
                 pilotSelection(user_n,:) = Pilot_combination2(randperm(size(Pilot_combination2,1),1),:);
             else
                 pilotSelection(user_n,:) = Pilot_combination(randperm(size(Pilot_combination,1),1),:);
@@ -628,11 +628,11 @@ for r = 1:nbrOfRealizations
     end
     if method == 2  
         rootSelections = zeros(UserNum,1);pilotSelection = zeros(UserNum,2);
-        % ÓÃ»§1 Ñ¡µ¼Æµ
-        rootSelections(1) = randperm(R,1); % ¸ùÐòÁÐÑ¡Ôñ
-        index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1,:) = Pilot_combination(index_SameRoot,:); % Á½¸ö×Óµ¼ÆµÑ¡Ôñ
+        % ï¿½Ã»ï¿½1 Ñ¡ï¿½ï¿½Æµ
+        rootSelections(1) = randperm(R,1); % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
+        index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1,:) = Pilot_combination(index_SameRoot,:); % ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ÆµÑ¡ï¿½ï¿½
         Pilot_combination2 = Pilot_combination;
-%         Pilot_combination2(index,:) = [];% É¾³ýÓëÓÃ»§1ÏàÍ¬µÄµ¼Æµ
+%         Pilot_combination2(index,:) = [];% É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½1ï¿½ï¿½Í¬ï¿½Äµï¿½Æµ
 
         for user_n = 2:UserNum
             rootSelections(user_n,1) = randperm(R,1);
@@ -652,7 +652,7 @@ for r = 1:nbrOfRealizations
         h_corr = corr_channel(M,1,UserNum,multipathNum,d,phaS,phaA_upper);
         h = h_corr;
     end
-    if channel == 3 %Random Access correlated Rayleigh fading channel£¬ÕâÀïËæ»úÉú³ÉÓÃ»§Î»ÖÃ
+    if channel == 3 %Random Access correlated Rayleigh fading channelï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Î»ï¿½ï¿½
         [h_corrRA, Rmatrix] = RAcorr_channel(M,1,UserNum,correlationFactor,cellRadius);
         Rmatrix = squeeze(Rmatrix(:,:,1,:));
         h = h_corrRA;
@@ -686,26 +686,26 @@ end
         first = firstUser_Pilot(1);second = firstUser_Pilot(2);root = firstUser_Pilot(3);
         c1 = pilot_pool(:,first,root);c2 = pilot_pool(:,second,root);
         c1 = c1/sqrt(2);c2 = c2/sqrt(2);
-        index_SameRoot = find(PilotIndex(:,3)== root);% Í¬¸ùÓÃ»§Ë÷Òý
-        index_diffRoot = find(PilotIndex(:,3)~= root);% ²»Í¬¸ùÓÃ»§Ë÷Òý
-        pilotSelectSameRoot = pilotSelection(index_SameRoot(2:end),:); % Í¬¸ùÓÃ»§ËùÑ¡µ¼Æµ
-        %ÅÐ¶ÏpilotÖÐÓÐ1ÇÒÃ»2
+        index_SameRoot = find(PilotIndex(:,3)== root);% Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
+        index_diffRoot = find(PilotIndex(:,3)~= root);% ï¿½ï¿½Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
+        pilotSelectSameRoot = pilotSelection(index_SameRoot(2:end),:); % Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Æµ
+        %ï¿½Ð¶ï¿½pilotï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½Ã»2
         component1 = (pilotSelectSameRoot(:, 1) == first & pilotSelectSameRoot(:, 2) ~= second)|(pilotSelectSameRoot(:, 2) == first & pilotSelectSameRoot(:, 1) ~= second);
-        Li1 = any(component1);   % ÊÇ·ñ´æÔÚÕâÖÖÓÃ»§£¬·µ»ØÂß¼­Öµ£¬´æÔÚÎª1£¬²»´æÔÚÎª0
-        index_component1 = find(component1 == 1);   % ¶ÔÓ¦ÓÃ»§Ë÷Òý
-        %ÅÐ¶ÏpilotÖÐÓÐ2ÇÒÃ»1
+        Li1 = any(component1);   % ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0
+        index_component1 = find(component1 == 1);   % ï¿½ï¿½Ó¦ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
+        %ï¿½Ð¶ï¿½pilotï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½Ã»1
         component2 = (pilotSelectSameRoot(:, 1) == second & pilotSelectSameRoot(:, 2) ~= first)|(pilotSelectSameRoot(:, 2) == second & pilotSelectSameRoot(:, 1) ~= first);
-        Li2 = any(component2);  % ÊÇ·ñ´æÔÚÕâÖÖÓÃ»§£¬·µ»ØÂß¼­Öµ
-        index_component2 = find(component2 == 1);  % ¶ÔÓ¦ÓÃ»§Ë÷Òý
+        Li2 = any(component2);  % ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½Öµ
+        index_component2 = find(component2 == 1);  % ï¿½ï¿½Ó¦ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
         index_component = vertcat(index_component1, index_component2);
                 %Li1 = ismember(first,pilotSelectSameRoot);
-                %Li2 = ismember(second,pilotSelectSameRoot);%ÅÐ¶ÏpilotÖÐÓÐÃ»ÓÐ2£¬ÓÐLib=1,Ã»ÓÐLib=0
-        %ÅÐ¶Ï£¨1,2£©ÓÐÃ»ÓÐÔÚpilotµÄÍ¬Ò»ÐÐÖÐ³öÏÖ
+                %Li2 = ismember(second,pilotSelectSameRoot);%ï¿½Ð¶ï¿½pilotï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½Lib=1,Ã»ï¿½ï¿½Lib=0
+        %ï¿½Ð¶Ï£ï¿½1,2ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½pilotï¿½ï¿½Í¬Ò»ï¿½ï¿½ï¿½Ð³ï¿½ï¿½ï¿½
         [Li_complete,index_complete] = ismember([first second],pilotSelectSameRoot,'rows');
-        if Li1==0 && Li2==0 && Li_complete==0% Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§²»Åö×²
+        if Li1==0 && Li2==0 && Li_complete==0% Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½×²
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
-                P = PR_ContrFactor_user(1)*PR; % ²»Í¬ÓÃ»§¹¦ÂÊ²»Ò»ÑùµÄ»°Òª¸ÄÒ»ÏÂ
+                P = PR_ContrFactor_user(1)*PR; % ï¿½ï¿½Í¬ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ê²ï¿½Ò»ï¿½ï¿½ï¿½Ä»ï¿½Òªï¿½ï¿½Ò»ï¿½ï¿½
                 Q = P*SequenceLength*Rmatrix(:,:,1)+sum(4*P*Rmatrix(:,:,index_diffRoot),3)+sigma2*eye(M);
                 R1Qinv = Rmatrix(:,:,1)/ Q;
                 g1 = sqrt(P)*sqrt(SequenceLength)*R1Qinv*y1;
@@ -714,7 +714,7 @@ end
             end
             
         end
-        if Li1==1 && Li2==0 && Li_complete==0%Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§Åö×²c1
+        if Li1==1 && Li2==0 && Li_complete==0%Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½×²c1
             y1 = Y*conj(c2)/norm(c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -725,7 +725,7 @@ end
                 g1 = y1;
             end
         end
-        if Li1==0 && Li2==1 && Li_complete==0%Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§Åö×²c2
+        if Li1==0 && Li2==1 && Li_complete==0%Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½×²c2
             y1 = Y*conj(c1)/norm(c1)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -736,7 +736,7 @@ end
                 g1 = y1;
             end
         end
-        if Li_complete==1 && Li1==0 && Li2==0 %Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§È«Åö×²
+        if Li_complete==1 && Li1==0 && Li2==0 %Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ã»ï¿½È«ï¿½ï¿½×²
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -747,7 +747,7 @@ end
                 g1 = y1;
             end
         end
-        if (Li1==1 || Li2==1) && Li_complete==1 %Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§È«Åö×²,ÇÒ»¹´æÔÚ²¿·ÖÅö×²
+        if (Li1==1 || Li2==1) && Li_complete==1 %Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ã»ï¿½È«ï¿½ï¿½×²,ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½×²
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -759,7 +759,7 @@ end
                 g1 = y1;
             end
         end  
-        if Li1==1 && Li2==1 && Li_complete==0 %Í¬¸ùÓÃ»§´æÔÚÁ½²¿·ÖÅö×²
+        if Li1==1 && Li2==1 && Li_complete==0 %Í¬ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×²
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE') 
                 P = PR_ContrFactor_user(1)*PR;
@@ -795,8 +795,8 @@ end
 end
 
  
-function [zcRootSequence] = CreatZC(SequenceLength,RootIndex)%Éú³ÉZCÐòÁÐ¸ùÐòÁÐ
-%Éú³ÉZCÐòÁÐ¸ùÐòÁÐ
+function [zcRootSequence] = CreatZC(SequenceLength,RootIndex)%ï¿½ï¿½ï¿½ï¿½ZCï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½ï¿½
+%ï¿½ï¿½ï¿½ï¿½ZCï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½ï¿½ï¿½
 if nargin == 1
     RootIndex = SequenceLength-1;
 end
@@ -807,9 +807,9 @@ else
     zcRootSequence=exp(-1j*pi*RootIndex/SequenceLength*(n.*(n+1)));
 end
 end
-function [zcShiftSequence] = CreatZCcirshift(zcRootSequence,SequenceLength,shiftNum)%Éú³ÉZCÐòÁÐÑ­»·ÒÆÎ»ÐòÁÐ
-%Éú³ÉZCÐòÁÐÑ­»·ÒÆÎ»ÐòÁÐ
-Ncs = floor(SequenceLength/shiftNum);%Ñ­»·ÒÆÎ»¼ä¸ô
+function [zcShiftSequence] = CreatZCcirshift(zcRootSequence,SequenceLength,shiftNum)%ï¿½ï¿½ï¿½ï¿½ZCï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+%ï¿½ï¿½ï¿½ï¿½ZCï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+Ncs = floor(SequenceLength/shiftNum);%Ñ­ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½
 zcShiftSequence = zeros(SequenceLength,shiftNum);
 for k = 0:shiftNum-1
 v =k*Ncs;
@@ -818,17 +818,17 @@ end
 end
 %% [2]Success Probability of Grant-Free Random Access With Massive MIMO
 function h_corr = corr_channel(M,nbrOfRealizations,UserNum,Q,d,phaS,phaA_upper)%correlated Rayleigh fading channel
-% M BSÌìÏßÊý
-% UserNum ÓÃ»§Êý
-% d ÌìÏß¾àÀë 
-% Q ¶à¾¶Êý
-% phaA_upper  the azimuth angle of the UE location ÉÏ½ç
+% M BSï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+% UserNum ï¿½Ã»ï¿½ï¿½ï¿½
+% d ï¿½ï¿½ï¿½ß¾ï¿½ï¿½ï¿½ 
+% Q ï¿½à¾¶ï¿½ï¿½
+% phaA_upper  the azimuth angle of the UE location ï¿½Ï½ï¿½
 % phaS  the angle spread
 h = zeros(M,nbrOfRealizations,UserNum);
 for user_n=1:UserNum
     for r = 1:nbrOfRealizations
         v=(randn(Q,1)+1i*randn(Q,1))/sqrt(2);
-        % And ¦ÕA and ¦ÕS are defined as the azimuth angle of the UE location and the angle spread
+        % And ï¿½ï¿½A and ï¿½ï¿½S are defined as the azimuth angle of the UE location and the angle spread
         phaA=2*phaA_upper*rand(1)-phaA_upper;
         AoA = phaS*rand(Q,1)+(phaA-phaS/2);
         a = zeros(M,Q);
@@ -848,12 +848,12 @@ else
     h_corr = h;
 end
 end
-%% [3]A Random Access Protocol for Pilot Allocation in Crowded Massive MIMO Systems  Ëæ»ú½ÓÈëÏà¹ØÐÅµÀ 
+%% [3]A Random Access Protocol for Pilot Allocation in Crowded Massive MIMO Systems  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åµï¿½ 
 function [h_corr,R] = RAcorr_channel(M,nbrOfRealizations,UserNum,correlationFactor,cellRadius)%correlated Rayleigh fading channel
-% M BSÌìÏßÊý
-% UserNum ÓÃ»§Êý
-% correlationFactor Ïà¹ØÒò×Ó
-% cellRadius Ð¡Çø°ë¾¶
+% M BSï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+% UserNum ï¿½Ã»ï¿½ï¿½ï¿½
+% correlationFactor ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+% cellRadius Ð¡ï¿½ï¿½ï¿½ë¾¶
 % userLocations = generatePointsHexagon([1,nbrOfRealizations,UserNum],cellRadius,0.1*cellRadius);
 % userAngles = angle(userLocations);
 userAngles = 2*pi*rand([1,nbrOfRealizations,UserNum])-pi;
@@ -912,8 +912,8 @@ end
 end
 
 function points = generatePointsHexagon(nbrOfPoints,radius,minDistance)
-%The hexagon Áù½ÇÐÎµÄ is divided into three rhombus. Each point is uniformly
-%distributed among these rhombus ÁâÐÎ£»Ð±·½ÐÎ£» %
+%The hexagon ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ is divided into three rhombus. Each point is uniformly
+%distributed among these rhombus ï¿½ï¿½ï¿½Î£ï¿½Ð±ï¿½ï¿½ï¿½Î£ï¿½ %
 whichRhombus = randi(3,nbrOfPoints);
 %Place the points uniformly distributed in a square
 xDim = radius*rand(nbrOfPoints);
@@ -931,7 +931,7 @@ if nargin>2
     end
 end
 end
-%% »­Í¼
+%% ï¿½ï¿½Í¼
 function  plot_snr_bler(SNR_Matrix,BLER_Matrix)
 % LineStyles='-bs -kv -ro -cs --bs --kv --ro --cs --md -gv -md -rp --bs --gv --rp --ko -m< -yd --bs -c> --gv --rp --co --m< --kd --y>';
  LineStyles='-bs --bs -gd -gd -kv --kv -ro --ro -b+ --b+ -g* -g* -kd --kd -rp --rp -cs --cs -mv --mv -md -rp --bs --gv --rp --ko -m< -yd --bs -c> --gv --rp --co --m< --kd --y>';
@@ -963,7 +963,7 @@ for i=1:strLen
 end
 end
 function myboldify(h,MarkerSize,YLabelFontSize,FontSize,LineWidth,LegendFontSize,TitleFontSize)
-%h  =gcf; % »ñµÃµ±Ç°figure ¾ä±ú£¬´ó¼ÒÐèÒªÓÃÕâ¸öÄ£°åÀ´»­Í¼£¬×ÐÏ¸µ÷ÕûÐ´³öµÄÎÄÕÂ²Å
+%h  =gcf; % ï¿½ï¿½Ãµï¿½Ç°figure ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â²ï¿½
 %FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 36; axis_ratio=1.5; %myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize);
 %  myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize)
 
@@ -1017,7 +1017,7 @@ for i = 1:length(ha)
     
 end
 end
-%% ±£´æÎÄ¼þ
+%% ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 function Save_link=Save_link_file(readFile,writeFile)
 fid = fopen(readFile);
 fid_write = fopen(writeFile,'w');
