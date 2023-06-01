@@ -1,7 +1,7 @@
 clc;clear all;close all; 
 savefile=1;   
 if savefile==1
-    filenameTmp ='test_corrChannel2_difangledistri_MMSE_PDRAsim_M96_SINR1_PA0.2_Shift32';%可将仿真关键参数作为文件名
+    filenameTmp ='test_corrChannel2_difangledistri_MF_PDRAsim_M96_SINR1_PA0.2_Shift32';%可将仿真关键参数作为文件名
     mkdir_str=strcat('.\Simulation\',filenameTmp);
     mkdir(mkdir_str);%一运行就会在当前文件夹下创建simulation文件夹
     mkdir_str1 =strcat(mkdir_str,'\');
@@ -23,12 +23,12 @@ Sequence_offset_range = [0];SINR_range = [1:1:1]; %阈值
 PR_ContrFactor_range=[0] ;% 功控因子范围   0db 是 理想功控  ，选2db
 L_range = [32];% 9 18 32 64shift个数 
 sim = 1;   % 2: 理论数据+仿真数据；1：仿真；0：理论；
-ESTIMATOR_range = {'MMSE'}; %what estimator to use [LS, MMSE]
+ESTIMATOR_range = {'LS'}; %what estimator to use [LS, MMSE]
 channel_range = [4];% channel = 1,iid ;% channel = 2,corr; % channel = 3,Random Access corr % 4.Massive MIMO Networks equ(2.23) 
 ASDdeg_range = [25]; %angular delay spread 
 distribution_range = {'Gaussian','Uniform','Laplace'}; % angular distribution
 phaS_range = [pi/9];phaA_upper_range = [pi/3]; % Debug parameter of channel = 2
-correlationFactor_range=[6]/10; % Debug parameter of channel = 3
+correlationFactor_range=[ 6]/10; % Debug parameter of channel = 3
 method_range = [2]; % method = 1,传一个码 %  method = 2,传两个码
 SubcaseNum = 0;  % 方便计算；dxm7311
 Default = 0;Dofor = 0; SumIndex =0;RandomSeed =0; cellRadius=250;

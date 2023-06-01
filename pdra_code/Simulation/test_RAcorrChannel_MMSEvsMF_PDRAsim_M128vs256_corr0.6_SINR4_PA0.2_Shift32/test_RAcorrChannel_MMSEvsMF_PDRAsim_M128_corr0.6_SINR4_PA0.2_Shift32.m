@@ -1,36 +1,34 @@
 clc;clear all;close all; 
 savefile=1;   
 if savefile==1
-    filenameTmp ='test_corrChannel2_difangledistri_MMSE_PDRAsim_M96_SINR1_PA0.2_Shift32';%¿É½«·ÂÕæ¹Ø¼ü²ÎÊı×÷ÎªÎÄ¼şÃû
+    filenameTmp ='test_RAcorrChannel_MMSEvsMF_PDRAsim_corr0.6_SINR4_PA0.2_Shift32';%å¯å°†ä»¿çœŸå…³é”®å‚æ•°ä½œä¸ºæ–‡ä»¶å
     mkdir_str=strcat('.\Simulation\',filenameTmp);
-    mkdir(mkdir_str);%Ò»ÔËĞĞ¾Í»áÔÚµ±Ç°ÎÄ¼ş¼ĞÏÂ´´½¨simulationÎÄ¼ş¼Ğ
+    mkdir(mkdir_str);%ä¸€è¿è¡Œå°±ä¼šåœ¨å½“å‰æ–‡ä»¶å¤¹ä¸‹åˆ›å»ºsimulationæ–‡ä»¶å¤¹
     mkdir_str1 =strcat(mkdir_str,'\');
-    filenameTmp1= filenameTmp;%ÅäÖÃÎÄ¼şµÄ±£´æµÄÃû×Ö
+    filenameTmp1= filenameTmp;%é…ç½®æ–‡ä»¶çš„ä¿å­˜çš„åå­—
     mkdir_str =strcat(mkdir_str1,filenameTmp1);
     mkdir_str =strcat(mkdir_str,'.m');
     Save_link1=Save_link_file('mainZCAccess_6_2_dai.m',mkdir_str);%
 end
 tic 
-System_type_range=[1];% 0: Ô­À´Ã¿Ö¡ÓÃ»§¹Ì¶¨UserNum = K0*pA£¬  1£º Ã¿Ö¡²»Í¬ÓÃ»§  ²®Å¬Àû·Ö²¼   
+System_type_range=[1];% 0: åŸæ¥æ¯å¸§ç”¨æˆ·å›ºå®šUserNum = K0*pAï¼Œ  1ï¼š æ¯å¸§ä¸åŒç”¨æˆ·  ä¼¯åŠªåˆ©åˆ†å¸ƒ   
 nbrOfRealizations_range = [1e4]; 
-R_range = [1:1:5]+0;%ZC¸ùĞòÁĞ¸öÊı 256 512
+R_range = [1:1:5]+0;%ZCæ ¹åºåˆ—ä¸ªæ•° 256 512
 reMethod_range = [0];comSINR_range = [0:1:0];
-pA_range = [20]/10000; M_range = [96]; 
+pA_range = [20]/10000; M_range = [128]; 
 Weight_range = [1]; SNR_range = [1:1:1];
 SNR_Two_offset_range = [0];K0values_range = [10000]; 
 RepPaper_range = [0]; SequenceLength_range = [839];  %S
-Sequence_offset_range = [0];SINR_range = [1:1:1]; %ãĞÖµ 
-PR_ContrFactor_range=[0] ;% ¹¦¿ØÒò×Ó·¶Î§   0db ÊÇ ÀíÏë¹¦¿Ø  £¬Ñ¡2db
-L_range = [32];% 9 18 32 64shift¸öÊı 
-sim = 1;   % 2: ÀíÂÛÊı¾İ+·ÂÕæÊı¾İ£»1£º·ÂÕæ£»0£ºÀíÂÛ£»
-ESTIMATOR_range = {'MMSE'}; %what estimator to use [LS, MMSE]
-channel_range = [4];% channel = 1,iid ;% channel = 2,corr; % channel = 3,Random Access corr % 4.Massive MIMO Networks equ(2.23) 
-ASDdeg_range = [25]; %angular delay spread 
-distribution_range = {'Gaussian','Uniform','Laplace'}; % angular distribution
+Sequence_offset_range = [0];SINR_range = [4:1:4]; %é˜ˆå€¼ 
+PR_ContrFactor_range=[0] ;% åŠŸæ§å› å­èŒƒå›´   0db æ˜¯ ç†æƒ³åŠŸæ§  ï¼Œé€‰2db
+L_range = [32];% 9 18 32 64shiftä¸ªæ•° 
+sim = 1;   % 2: ç†è®ºæ•°æ®+ä»¿çœŸæ•°æ®ï¼›1ï¼šä»¿çœŸï¼›0ï¼šç†è®ºï¼›
+ESTIMATOR_range = {'MMSE','LS'}; %what estimator to use [LS, MMSE]
+channel_range = [3];% channel = 1,iid ;% channel = 2,corr; % channel = 3,Random Access corr
 phaS_range = [pi/9];phaA_upper_range = [pi/3]; % Debug parameter of channel = 2
-correlationFactor_range=[6]/10; % Debug parameter of channel = 3
-method_range = [2]; % method = 1,´«Ò»¸öÂë %  method = 2,´«Á½¸öÂë
-SubcaseNum = 0;  % ·½±ã¼ÆËã£»dxm7311
+correlationFactor_range=[ 6]/10; % Debug parameter of channel = 3
+method_range = [2]; % method = 1,ä¼ ä¸€ä¸ªç  %  method = 2,ä¼ ä¸¤ä¸ªç 
+SubcaseNum = 0;  % æ–¹ä¾¿è®¡ç®—ï¼›dxm7311
 Default = 0;Dofor = 0; SumIndex =0;RandomSeed =0; cellRadius=250;
 tic
 for System_type=System_type_range
@@ -39,40 +37,39 @@ for pA = pA_range  for M = M_range  for Weight = Weight_range for SNR = SNR_rang
 for SNR_Two_offset = SNR_Two_offset_range for K0_range = K0values_range
 for RepPaper = RepPaper_range for SequenceLength = SequenceLength_range 
 for Sequence_offset = Sequence_offset_range for SINR = SINR_range 
-for PR_ContrFactor=PR_ContrFactor_range;%  0 (prefectµÈ¹¦ÂÊPR=1), 5  10
+for PR_ContrFactor=PR_ContrFactor_range;%  0 (prefectç­‰åŠŸç‡PR=1), 5  10
 for L = L_range for ESTIMATOR = ESTIMATOR_range for channel = channel_range 
-for ASDdeg = ASDdeg_range for distribution = distribution_range;
 for phaS = phaS_range for phaA_upper = phaA_upper_range for correlationFactor = correlationFactor_range
 for method = method_range
-if RandomSeed ==0 rand('state',12345);  randn('state',12345*3);  end% ±£Ö¤Ã¿´ÎSNRÑ­»·£¬³õÊ¼ÖÖ×Ó¶¼Ò»Ñù
+if RandomSeed ==0 rand('state',12345);  randn('state',12345*3);  end% ä¿è¯æ¯æ¬¡SNRå¾ªç¯ï¼Œåˆå§‹ç§å­éƒ½ä¸€æ ·
 Para.System_type = System_type;
 Para.SubcaseNum = SubcaseNum; Para.Default =Default; Para.Dofor = Dofor;
-Para.reMethod=reMethod; Para.comSINR = comSINR;Para.pA = pA ; % ¼¤»î¸ÅÂÊ
+Para.reMethod=reMethod; Para.comSINR = comSINR;Para.pA = pA ; % æ¿€æ´»æ¦‚ç‡
 Para.Weight = Weight;Para.SNR = SNR;
-Para.channel = channel;Para.ASDdeg = ASDdeg;Para.distribution = distribution;
+Para.channel = channel;
 Para.phaS = phaS;Para.phaA_upper = phaA_upper;
 Para.correlationFactor = correlationFactor;Para.cellRadius = cellRadius;
-Para.SINR = SINR ; %ãĞÖµ
+Para.SINR = SINR ; %é˜ˆå€¼
 Para.PR_ContrFactor=PR_ContrFactor;
-Para.R_range = R_range;%ZC¸ùĞòÁĞ¸öÊı
-Para.L = L;% shift¸öÊı
+Para.R_range = R_range;%ZCæ ¹åºåˆ—ä¸ªæ•°
+Para.L = L;% shiftä¸ªæ•°
 Para.M = M ;   %Number of BS antennas
 Para.ESTIMATOR = ESTIMATOR;
 Para.SNR_Two_offset = SNR_Two_offset; 
 Para.K0_range = K0_range ; %[100 200 300 500 1000:5000:12000]; % user number
-Para.RepPaper = RepPaper;  % ÔÙÏÖÎÄÕÂÍ¼5 of [1]
+Para.RepPaper = RepPaper;  % å†ç°æ–‡ç« å›¾5 of [1]
 Para.SequenceLength = SequenceLength ;
 Para.Sequence_offset = Sequence_offset ; 
 
-if sim == 1 % È«·ÂÕæ
-    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% È«·ÂÕæ
+if sim == 1 % å…¨ä»¿çœŸ
+    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% å…¨ä»¿çœŸ
     DataAll = DataSim;
-elseif sim == 0 % È«ÀíÂÛ
+elseif sim == 0 % å…¨ç†è®º
     DataTheory = computeSuccessProbability_theory(method,Para,nbrOfRealizations);
     DataAll = DataTheory;
-elseif sim == 2 % È«ÀíÂÛ+È«·ÂÕæ
+elseif sim == 2 % å…¨ç†è®º+å…¨ä»¿çœŸ
     DataTheory = computeSuccessProbability_theory(method,Para,nbrOfRealizations);
-    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% È«·ÂÕæ
+    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% å…¨ä»¿çœŸ
     DataAll = [DataTheory;DataSim];
 end
 SumIndex = SumIndex+1; 
@@ -84,13 +81,13 @@ end
 % DataMatrix
 toc; stop = 1;
 if savefile==1
-    % simulationÎÄ¼ş¼ĞÀï£¬±£´æÃ¿´Î·ÂÕæ½á¹û  ,³É  .matÎÄ¼ş
+    % simulationæ–‡ä»¶å¤¹é‡Œï¼Œä¿å­˜æ¯æ¬¡ä»¿çœŸç»“æœ  ,æˆ  .matæ–‡ä»¶
     strsave= strcat('.\Simulation\',filenameTmp,'\');
     if SumIndex ==1
         filenameTmp1 = strcat(filenameTmp,'.mat');
     end
     strsave= strcat(strsave,filenameTmp1);
-    s=['save ' strsave];% ±£³Ö.mat ÎÄ¼ş£¬ÒÔºó·ÂÕæ½á¹û¿ÉÒÔÔÙ´ÎÈ·ÈÏ,ÒÔºóÒ»¶¨×¢Òâ¿ÉÒÔÔÙ´Î»­Í¼¡£
+    s=['save ' strsave];% ä¿æŒ.mat æ–‡ä»¶ï¼Œä»¥åä»¿çœŸç»“æœå¯ä»¥å†æ¬¡ç¡®è®¤,ä»¥åä¸€å®šæ³¨æ„å¯ä»¥å†æ¬¡ç”»å›¾ã€‚
     eval(s);  
 end
 
@@ -100,8 +97,6 @@ end
 end
 end
 end 
-end
-end
 end
 end
 end
@@ -129,7 +124,7 @@ end
 % % title_str = strcat('SINR =',num2str(title_SINR(i)),'dB');
 % % title(title_str);set(gca,'Fontname','Monospaced');
 % legend('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30');
-% h  =gcf; % »ñµÃµ±Ç°figure ¾ä±ú£¬´ó¼ÒĞèÒªÓÃÕâ¸öÄ£°åÀ´»­Í¼£¬×ĞÏ¸µ÷ÕûĞ´³öµÄÎÄÕÂ²Å
+% h  =gcf; % è·å¾—å½“å‰figure å¥æŸ„ï¼Œå¤§å®¶éœ€è¦ç”¨è¿™ä¸ªæ¨¡æ¿æ¥ç”»å›¾ï¼Œä»”ç»†è°ƒæ•´å†™å‡ºçš„æ–‡ç« æ‰
 % MarkerSize=9; LineWidth =2; LineMethod =1; PlotMethod =1; FontSize=22;
 % YLabelFontSize =24;
 % FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 24; axis_ratio=1.5; 
@@ -183,14 +178,14 @@ end
 % plotFig = 0;
 % if plotFig ==1
 %      clear all; close all;
-%     filenameTmp ='test_cor_channel_151';%test_diff_channel_M test_M test_shift ¿É½«·ÂÕæ²ÎÊı×÷ÎªÎÄ¼şÃû
+%     filenameTmp ='test_cor_channel_151';%test_diff_channel_M test_M test_shift å¯å°†ä»¿çœŸå‚æ•°ä½œä¸ºæ–‡ä»¶å
 %     mkdir_str=strcat('.\Simulation\',filenameTmp);
-%     mkdir(mkdir_str);%Ò»ÔËĞĞ¾Í»áÔÚµ±Ç°ÎÄ¼ş¼ĞÏÂ´´½¨simulationÎÄ¼ş¼Ğ
+%     mkdir(mkdir_str);%ä¸€è¿è¡Œå°±ä¼šåœ¨å½“å‰æ–‡ä»¶å¤¹ä¸‹åˆ›å»ºsimulationæ–‡ä»¶å¤¹
 %     mkdir_str1 =strcat(mkdir_str,'\');
 %     mkdir_str =strcat(mkdir_str1,filenameTmp);
 %     mkdir_str =strcat(mkdir_str,'.m');
 %     strsave= strcat('.\Simulation\',filenameTmp,'\');
-%     strsave= strcat(strsave,filenameTmp); s=['load ' strsave]; eval(s);% ±£³Ö.mat ÎÄ¼ş£¬ÒÔºó·ÂÕæ½á¹û¿ÉÒÔÔÙ´ÎÈ·ÈÏ,ÒÔºóÒ»¶¨×¢Òâ¿ÉÒÔÔÙ´Î»­Í¼¡£
+%     strsave= strcat(strsave,filenameTmp); s=['load ' strsave]; eval(s);% ä¿æŒ.mat æ–‡ä»¶ï¼Œä»¥åä»¿çœŸç»“æœå¯ä»¥å†æ¬¡ç¡®è®¤,ä»¥åä¸€å®šæ³¨æ„å¯ä»¥å†æ¬¡ç”»å›¾ã€‚
 %    DataMatrix
 %     SNR_Matrix =R_range;
 %     CaseNum = length(method_range)*length(L_range)*length(pA_range);
@@ -209,7 +204,7 @@ end
 % %         title_str = strcat('SINR =',num2str(title_SINR(i)),'dB');
 % %         title(title_str);set(gca,'Fontname','Monospaced');
 %         legend('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30');
-%         h  =gcf; % »ñµÃµ±Ç°figure ¾ä±ú£¬´ó¼ÒĞèÒªÓÃÕâ¸öÄ£°åÀ´»­Í¼£¬×ĞÏ¸µ÷ÕûĞ´³öµÄÎÄÕÂ²Å
+%         h  =gcf; % è·å¾—å½“å‰figure å¥æŸ„ï¼Œå¤§å®¶éœ€è¦ç”¨è¿™ä¸ªæ¨¡æ¿æ¥ç”»å›¾ï¼Œä»”ç»†è°ƒæ•´å†™å‡ºçš„æ–‡ç« æ‰
 %         MarkerSize=9; LineWidth =2; LineMethod =1; PlotMethod =1; FontSize=22;
 %         YLabelFontSize =24;
 %         FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 24; axis_ratio=1.5; %myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize);
@@ -224,7 +219,7 @@ function DataMatrix = computeSuccessProbability_theory(method,Para,nbrOfRealizat
 % [1]Jie Ding et al "Analysis of Non-Orthogonal Sequences for Grant-Free RA
 % With Massive MIMO"
 % clc;clear all;close all;
-% method_range = [1 2]; % "1":ÎÄÕÂ[1];   "2":Proposed
+% method_range = [1 2]; % "1":æ–‡ç« [1];   "2":Proposed
 Weight = Para.Weight;SNR = Para.SNR ;
 Default = Para.Default;channel = Para.channel;
 phaS = Para.phaS ;phaA_upper = Para.phaA_upper;
@@ -234,26 +229,26 @@ comSINR = Para.comSINR;
 M = Para.M;   %Number of BS antennas
 SNR_Two_offset = Para.SNR_Two_offset; 
 K0_range = Para.K0_range; %[100 200 300 500 1000:5000:12000]; % user number
-pA = Para.pA; % ¼¤»î¸ÅÂÊ
-R_range = Para.R_range;%ZC¸ùĞòÁĞ¸öÊı
-RepPaper = Para.RepPaper ;  % ÔÙÏÖÎÄÕÂÍ¼5 of [1]
-L = Para.L;% shift¸öÊı
+pA = Para.pA; % æ¿€æ´»æ¦‚ç‡
+R_range = Para.R_range;%ZCæ ¹åºåˆ—ä¸ªæ•°
+RepPaper = Para.RepPaper ;  % å†ç°æ–‡ç« å›¾5 of [1]
+L = Para.L;% shiftä¸ªæ•°
 SequenceLength = Para.SequenceLength;
 Sequence_offset = Para.Sequence_offset;
-SINR = Para.SINR; %ãĞÖµ
+SINR = Para.SINR; %é˜ˆå€¼
 SubcaseNum = Para.SubcaseNum;
 reMethod = Para.reMethod ;
 if  Default ==1
     M = 128; SNR_Two_offset = 0;
     K0_range = 10000; %[100 200 300 500 1000:5000:12000]; % user number
-    pA = 0.003; % ¼¤»î¸ÅÂÊ
-    R_range = [1:4]+0;%ZC¸ùĞòÁĞ¸öÊı
-    RepPaper = 0 ;  % ÔÙÏÖÎÄÕÂÍ¼5 of [1]
-    L_range = [9 18 32 64];% shift¸öÊı
-    % L_range = [33 43 53 63 73];% shift¸öÊı
+    pA = 0.003; % æ¿€æ´»æ¦‚ç‡
+    R_range = [1:4]+0;%ZCæ ¹åºåˆ—ä¸ªæ•°
+    RepPaper = 0 ;  % å†ç°æ–‡ç« å›¾5 of [1]
+    L_range = [9 18 32 64];% shiftä¸ªæ•°
+    % L_range = [33 43 53 63 73];% shiftä¸ªæ•°
     SequenceLength = 139;
     Sequence_offset = 1;
-    SINR_range = [3:1:3]; %ãĞÖµ
+    SINR_range = [3:1:3]; %é˜ˆå€¼
     SubcaseNum =1; 
 end
 sigma2 = 10^(-SNR/10);
@@ -275,13 +270,13 @@ for R = R_range
         N_range = 0:100;
     end
 %     P_N = BernoulliDistribution_Probabilities (K0,pA,N_range);
-%     sum(P_N); %¼¤»îÓÃ»§¸ÅÂÊ
+%     sum(P_N); %æ¿€æ´»ç”¨æˆ·æ¦‚ç‡
     if method ==1
-        Q = R*L; % µ¼ÆµÊı
+        Q = R*L; % å¯¼é¢‘æ•°
         alpha = 1-L/Q;
     end
     if method ==2
-        Q = R*L*(L-1)/2; % µ¼ÆµÊı
+        Q = R*L*(L-1)/2; % å¯¼é¢‘æ•°
         alpha = 1-L/Q;
     end
     for N = N_range(2:end)
@@ -330,19 +325,19 @@ for R = R_range
                             e1 = n_hat/sqrt(SequenceLength*rhoR);
                         end
                     end
-                    if comSINR == 0% ¹«Ê½£¨1£©
+                    if comSINR == 0% å…¬å¼ï¼ˆ1ï¼‰
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                         Denominator1 = PR*c0;Denominator2 = sigma2*abs(sum(conj(h_hat),1)).^2;SINR_sim = Numerator./(Denominator1+Denominator2);
                     end  
-                    if comSINR == 1% ¹«Ê½£¨1£©
+                    if comSINR == 1% å…¬å¼ï¼ˆ1ï¼‰
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                         Denominator1 = PR*c0;Denominator2 = abs(sum(conj(h_hat).*n,1)).^2;SINR_sim = Numerator./(Denominator1+Denominator2);
                     end
-                    if comSINR ==2% ¹«Ê½£¨2£©
+                    if comSINR ==2% å…¬å¼ï¼ˆ2ï¼‰
                         Denominator1 = PR*abs(sum(conj(e1).*h1,1)).^2;
                         a1 = repmat(conj(h1),[1 1 N-1]).*h(:,:,2:N);b1 = sum(a1,1); c1 = sum(abs(b1).^2,3);
                         Denominator2 = PR*c1;
@@ -362,10 +357,10 @@ for R = R_range
                     nchoose_k = factorial(N-1)/factorial(k)/factorial(N-1-k);
                     Pr_one_sim(k+1,1) = nchoose_k*(1-alpha)^(N-1-k)*alpha^k;
                 end
-                q_sim(N) = sum(Pr_one_sim.*P_SINR); % Ô­Ê¼
+                q_sim(N) = sum(Pr_one_sim.*P_SINR); % åŸå§‹
             end
         end
-        %% Ã¿¸öÓÃ»§Ñ¡ÔñÁ½¸öÕı½»ĞòÁĞ
+        %% æ¯ä¸ªç”¨æˆ·é€‰æ‹©ä¸¤ä¸ªæ­£äº¤åºåˆ—
         if method == 2
             T = min(floor(1/4*SequenceLength/10^(SINR/10)),N-1);K_range = 0:T;
             p(N) = (1-1/Q)^(N-1);
@@ -419,7 +414,7 @@ for R = R_range
                             e1 = n_hat/sqrt(SequenceLength*rhoR);
                         end
                     end
-                    if comSINR == 0% ¹«Ê½£¨1£©
+                    if comSINR == 0% å…¬å¼ï¼ˆ1ï¼‰
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
@@ -446,7 +441,7 @@ for R = R_range
                                 g1_1 = sqrt(PR*SequenceLength/2)*h1+n;
                             end
                         end
-                        if comSINR == 0% ¹«Ê½£¨1£©
+                        if comSINR == 0% å…¬å¼ï¼ˆ1ï¼‰
                             Numerator_0 = PR*abs(sum(conj(g1_0).*h1,1)).^2;
                             a0 = repmat(conj(g1_0),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                             Denominator1_0 = PR*c0;Denominator2_0 = sigma2*abs(sum(conj(g1_0),1)).^2;
@@ -484,8 +479,8 @@ for R = R_range
         end
     end
     f = p.*q;
-    N_average = round(K0*pA);% Æ½¾ù½ÓÈëÓÃ»§Êı
-    P_success(1,R) = f(N_average);% ÏÈ¶ÔNÈ¡Æ½¾ù£¬ÔÙ¼ÆËã¸ÅÂÊ
+    N_average = round(K0*pA);% å¹³å‡æ¥å…¥ç”¨æˆ·æ•°
+    P_success(1,R) = f(N_average);% å…ˆå¯¹Nå–å¹³å‡ï¼Œå†è®¡ç®—æ¦‚ç‡
     if SubcaseNum == 2
         g = p.*q_sim; 
         P_success(2,R) = g(N_average);
@@ -515,8 +510,8 @@ end
 end
 
 function [P0,P1] = abc(M_range,L_range)
-% M_range ÓÃ»§Êı
-% L_range µ¼ÆµÊı
+% M_range ç”¨æˆ·æ•°
+% L_range å¯¼é¢‘æ•°
 caseindex =0;
 for L = L_range
 for M = M_range
@@ -561,35 +556,35 @@ end
 function P_success = computeSuccessProbability_sim(method,Para,nbrOfRealizations)
 Default = Para.Default; M = Para.M;   %Number of BS antennas
 K0_range = Para.K0_range; %[100 200 300 500 1000:5000:12000]; % user number
-pA = Para.pA; % ¼¤»î¸ÅÂÊ
-R_range = Para.R_range;%ZC¸ùĞòÁĞ¸öÊı
-L = Para.L;% shift¸öÊı
+pA = Para.pA; % æ¿€æ´»æ¦‚ç‡
+R_range = Para.R_range;%ZCæ ¹åºåˆ—ä¸ªæ•°
+L = Para.L;% shiftä¸ªæ•°
 SequenceLength = Para.SequenceLength;
 ESTIMATOR = Para.ESTIMATOR;
-SINR = Para.SINR; %ãĞÖµ
-PR_Control_index=Para.PR_ContrFactor; % ¹¦¿ØÒò×Ó
-SNR = Para.SNR ;channel = Para.channel; ASDdeg = Para.ASDdeg; distribution = Para.distribution;
+SINR = Para.SINR; %é˜ˆå€¼
+PR_Control_index=Para.PR_ContrFactor; % åŠŸæ§å› å­
+SNR = Para.SNR ;channel = Para.channel;
 phaS = Para.phaS ;phaA_upper = Para.phaA_upper;
 correlationFactor = Para.correlationFactor ; cellRadius = Para.cellRadius ;
 System_type=Para.System_type ;
 if  Default ==1
     
 end
-sigma2 = 10^(-SNR/10); % ÔëÉù¹¦ÂÊ
-rhoR = 10^(SNR/10);% ·¢Éä¹¦ÂÊ
+sigma2 = 10^(-SNR/10); % å™ªå£°åŠŸç‡
+rhoR = 10^(SNR/10);% å‘å°„åŠŸç‡
 PR = rhoR*sigma2;  
 multipathNum = M/2;%path number 
 d=1/2;% antenna distance
-P_success = zeros(1,length(R_range)); % ³õÊ¼»¯½ÓÈë³É¹¦¸ÅÂÊ
+P_success = zeros(1,length(R_range)); % åˆå§‹åŒ–æ¥å…¥æˆåŠŸæ¦‚ç‡
 PR_ContrFactor =10.^(-[-PR_Control_index:PR_Control_index]/10);%  
 for indProb = 1:length(K0_range)
 %     disp(['K0 values: ' num2str(indProb) ' out of ' num2str(length(K0_range))]);
     K0 = K0_range(indProb); % Extract current value of the number of inactive UEs
-%     UserNum = K0*pA; % ¼¤»îÓÃ»§Êı
+%     UserNum = K0*pA; % æ¿€æ´»ç”¨æˆ·æ•°
 if System_type==0;newUsersNum = repmat(K0*pA,nbrOfRealizations,1); 
-elseif System_type==1;newUsersNum = binornd(K0,pA,[nbrOfRealizations 1]);end % ¼¤»îÓÃ»§Êı
+elseif System_type==1;newUsersNum = binornd(K0,pA,[nbrOfRealizations 1]);end % æ¿€æ´»ç”¨æˆ·æ•°
 
-% ZCµ¼Æµ¹¹Ôì
+% ZCå¯¼é¢‘æ„é€ 
 for R = R_range
 pilot_pool = zeros(SequenceLength,L,R);
 for RootIndex = 1:R
@@ -599,27 +594,27 @@ for RootIndex = 1:R
 end
 
 if method ==1;    Pilot_combination = (1:L)';           end
-if method ==2;    Pilot_combination = nchoosek(1:L,2);  end % ´Ó¼¯ºÏ [1:L] ÖĞÑ¡È¡ 2 ¸öÔªËØµÄËùÓĞ×éºÏ
+if method ==2;    Pilot_combination = nchoosek(1:L,2);  end % ä»é›†åˆ [1:L] ä¸­é€‰å– 2 ä¸ªå…ƒç´ çš„æ‰€æœ‰ç»„åˆ
 Number = 0;warning('off');
 for r = 1:nbrOfRealizations 
-    UserNum=newUsersNum(r); % Ã¿Ò»Ö¡¼¤»îÓÃ»§Êı 
+    UserNum=newUsersNum(r); % æ¯ä¸€å¸§æ¿€æ´»ç”¨æˆ·æ•° 
 %     if PR_Control_index==0
 %         PR_ContrFactor_user=ones(1,UserNum);
 %     else
 %     PR_ContrFactor =10.^(-[-PR_Control_index:(PR_Control_index*2/UserNum):PR_Control_index]/10);% 
-%     PR_ContrFactor_user=PR_ContrFactor(1:UserNum);% Ã¿Ò»Ö¡ÓÃ»§µÄ¹¦¿ØÒò×Ó
+%     PR_ContrFactor_user=PR_ContrFactor(1:UserNum);% æ¯ä¸€å¸§ç”¨æˆ·çš„åŠŸæ§å› å­
 %     end
-    PR_ContrFactor_user=PR_ContrFactor(randi([1,length(PR_ContrFactor)],1,UserNum));% Ã¿Ò»Ö¡ÓÃ»§µÄ¹¦¿ØÒò×Ó
+    PR_ContrFactor_user=PR_ContrFactor(randi([1,length(PR_ContrFactor)],1,UserNum));% æ¯ä¸€å¸§ç”¨æˆ·çš„åŠŸæ§å› å­
     if method == 1  
         rootSelections = zeros(UserNum,1);pilotSelection = zeros(UserNum,1);
         rootSelections(1) = randperm(R,1);
         index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1) = Pilot_combination(index_SameRoot,:);
         Pilot_combination2 = Pilot_combination;
-%         Pilot_combination2(index) = [];% É¾³ıÓëÓÃ»§1ÏàÍ¬µÄµ¼Æµ
+%         Pilot_combination2(index) = [];% åˆ é™¤ä¸ç”¨æˆ·1ç›¸åŒçš„å¯¼é¢‘
         for user_n = 2:UserNum
             rootSelections(user_n,1) = randperm(R,1);
             if rootSelections(user_n,1) == rootSelections(1)
-                % Í¬¸ùÓÃ»§ÓëÓÃ»§1Ñ¡Ôñµ¼Æµ²»Í¬                
+                % åŒæ ¹ç”¨æˆ·ä¸ç”¨æˆ·1é€‰æ‹©å¯¼é¢‘ä¸åŒ                
                 pilotSelection(user_n,:) = Pilot_combination2(randperm(size(Pilot_combination2,1),1),:);
             else
                 pilotSelection(user_n,:) = Pilot_combination(randperm(size(Pilot_combination,1),1),:);
@@ -628,11 +623,11 @@ for r = 1:nbrOfRealizations
     end
     if method == 2  
         rootSelections = zeros(UserNum,1);pilotSelection = zeros(UserNum,2);
-        % ÓÃ»§1 Ñ¡µ¼Æµ
-        rootSelections(1) = randperm(R,1); % ¸ùĞòÁĞÑ¡Ôñ
-        index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1,:) = Pilot_combination(index_SameRoot,:); % Á½¸ö×Óµ¼ÆµÑ¡Ôñ
+        % ç”¨æˆ·1 é€‰å¯¼é¢‘
+        rootSelections(1) = randperm(R,1); % æ ¹åºåˆ—é€‰æ‹©
+        index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1,:) = Pilot_combination(index_SameRoot,:); % ä¸¤ä¸ªå­å¯¼é¢‘é€‰æ‹©
         Pilot_combination2 = Pilot_combination;
-%         Pilot_combination2(index,:) = [];% É¾³ıÓëÓÃ»§1ÏàÍ¬µÄµ¼Æµ
+%         Pilot_combination2(index,:) = [];% åˆ é™¤ä¸ç”¨æˆ·1ç›¸åŒçš„å¯¼é¢‘
 
         for user_n = 2:UserNum
             rootSelections(user_n,1) = randperm(R,1);
@@ -652,13 +647,8 @@ for r = 1:nbrOfRealizations
         h_corr = corr_channel(M,1,UserNum,multipathNum,d,phaS,phaA_upper);
         h = h_corr;
     end
-    if channel == 3 %Random Access correlated Rayleigh fading channel£¬ÕâÀïËæ»úÉú³ÉÓÃ»§Î»ÖÃ
+    if channel == 3 %Random Access correlated Rayleigh fading channelï¼Œè¿™é‡Œéšæœºç”Ÿæˆç”¨æˆ·ä½ç½®
         [h_corrRA, Rmatrix] = RAcorr_channel(M,1,UserNum,correlationFactor,cellRadius);
-        Rmatrix = squeeze(Rmatrix(:,:,1,:));
-        h = h_corrRA;
-    end
-    if channel == 4 % Function to generate the channels according to the book "Massive MIMO Networks"
-        [h_corrRA, Rmatrix] = corr_channel2(M, UserNum, ASDdeg, 1, distribution);
         Rmatrix = squeeze(Rmatrix(:,:,1,:));
         h = h_corrRA;
     end
@@ -686,26 +676,26 @@ end
         first = firstUser_Pilot(1);second = firstUser_Pilot(2);root = firstUser_Pilot(3);
         c1 = pilot_pool(:,first,root);c2 = pilot_pool(:,second,root);
         c1 = c1/sqrt(2);c2 = c2/sqrt(2);
-        index_SameRoot = find(PilotIndex(:,3)== root);% Í¬¸ùÓÃ»§Ë÷Òı
-        index_diffRoot = find(PilotIndex(:,3)~= root);% ²»Í¬¸ùÓÃ»§Ë÷Òı
-        pilotSelectSameRoot = pilotSelection(index_SameRoot(2:end),:); % Í¬¸ùÓÃ»§ËùÑ¡µ¼Æµ
-        %ÅĞ¶ÏpilotÖĞÓĞ1ÇÒÃ»2
+        index_SameRoot = find(PilotIndex(:,3)== root);% åŒæ ¹ç”¨æˆ·ç´¢å¼•
+        index_diffRoot = find(PilotIndex(:,3)~= root);% ä¸åŒæ ¹ç”¨æˆ·ç´¢å¼•
+        pilotSelectSameRoot = pilotSelection(index_SameRoot(2:end),:); % åŒæ ¹ç”¨æˆ·æ‰€é€‰å¯¼é¢‘
+        %åˆ¤æ–­pilotä¸­æœ‰1ä¸”æ²¡2
         component1 = (pilotSelectSameRoot(:, 1) == first & pilotSelectSameRoot(:, 2) ~= second)|(pilotSelectSameRoot(:, 2) == first & pilotSelectSameRoot(:, 1) ~= second);
-        Li1 = any(component1);   % ÊÇ·ñ´æÔÚÕâÖÖÓÃ»§£¬·µ»ØÂß¼­Öµ£¬´æÔÚÎª1£¬²»´æÔÚÎª0
-        index_component1 = find(component1 == 1);   % ¶ÔÓ¦ÓÃ»§Ë÷Òı
-        %ÅĞ¶ÏpilotÖĞÓĞ2ÇÒÃ»1
+        Li1 = any(component1);   % æ˜¯å¦å­˜åœ¨è¿™ç§ç”¨æˆ·ï¼Œè¿”å›é€»è¾‘å€¼ï¼Œå­˜åœ¨ä¸º1ï¼Œä¸å­˜åœ¨ä¸º0
+        index_component1 = find(component1 == 1);   % å¯¹åº”ç”¨æˆ·ç´¢å¼•
+        %åˆ¤æ–­pilotä¸­æœ‰2ä¸”æ²¡1
         component2 = (pilotSelectSameRoot(:, 1) == second & pilotSelectSameRoot(:, 2) ~= first)|(pilotSelectSameRoot(:, 2) == second & pilotSelectSameRoot(:, 1) ~= first);
-        Li2 = any(component2);  % ÊÇ·ñ´æÔÚÕâÖÖÓÃ»§£¬·µ»ØÂß¼­Öµ
-        index_component2 = find(component2 == 1);  % ¶ÔÓ¦ÓÃ»§Ë÷Òı
+        Li2 = any(component2);  % æ˜¯å¦å­˜åœ¨è¿™ç§ç”¨æˆ·ï¼Œè¿”å›é€»è¾‘å€¼
+        index_component2 = find(component2 == 1);  % å¯¹åº”ç”¨æˆ·ç´¢å¼•
         index_component = vertcat(index_component1, index_component2);
                 %Li1 = ismember(first,pilotSelectSameRoot);
-                %Li2 = ismember(second,pilotSelectSameRoot);%ÅĞ¶ÏpilotÖĞÓĞÃ»ÓĞ2£¬ÓĞLib=1,Ã»ÓĞLib=0
-        %ÅĞ¶Ï£¨1,2£©ÓĞÃ»ÓĞÔÚpilotµÄÍ¬Ò»ĞĞÖĞ³öÏÖ
+                %Li2 = ismember(second,pilotSelectSameRoot);%åˆ¤æ–­pilotä¸­æœ‰æ²¡æœ‰2ï¼Œæœ‰Lib=1,æ²¡æœ‰Lib=0
+        %åˆ¤æ–­ï¼ˆ1,2ï¼‰æœ‰æ²¡æœ‰åœ¨pilotçš„åŒä¸€è¡Œä¸­å‡ºç°
         [Li_complete,index_complete] = ismember([first second],pilotSelectSameRoot,'rows');
-        if Li1==0 && Li2==0 && Li_complete==0% Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§²»Åö×²
+        if Li1==0 && Li2==0 && Li_complete==0% åŒæ ¹ç”¨æˆ·ä¸ç¬¬ä¸€ä¸ªç”¨æˆ·ä¸ç¢°æ’
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
-                P = PR_ContrFactor_user(1)*PR; % ²»Í¬ÓÃ»§¹¦ÂÊ²»Ò»ÑùµÄ»°Òª¸ÄÒ»ÏÂ
+                P = PR_ContrFactor_user(1)*PR; % ä¸åŒç”¨æˆ·åŠŸç‡ä¸ä¸€æ ·çš„è¯è¦æ”¹ä¸€ä¸‹
                 Q = P*SequenceLength*Rmatrix(:,:,1)+sum(4*P*Rmatrix(:,:,index_diffRoot),3)+sigma2*eye(M);
                 R1Qinv = Rmatrix(:,:,1)/ Q;
                 g1 = sqrt(P)*sqrt(SequenceLength)*R1Qinv*y1;
@@ -714,7 +704,7 @@ end
             end
             
         end
-        if Li1==1 && Li2==0 && Li_complete==0%Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§Åö×²c1
+        if Li1==1 && Li2==0 && Li_complete==0%åŒæ ¹ç”¨æˆ·ä¸ç¬¬ä¸€ä¸ªç”¨æˆ·ç¢°æ’c1
             y1 = Y*conj(c2)/norm(c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -725,7 +715,7 @@ end
                 g1 = y1;
             end
         end
-        if Li1==0 && Li2==1 && Li_complete==0%Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§Åö×²c2
+        if Li1==0 && Li2==1 && Li_complete==0%åŒæ ¹ç”¨æˆ·ä¸ç¬¬ä¸€ä¸ªç”¨æˆ·ç¢°æ’c2
             y1 = Y*conj(c1)/norm(c1)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -736,7 +726,7 @@ end
                 g1 = y1;
             end
         end
-        if Li_complete==1 && Li1==0 && Li2==0 %Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§È«Åö×²
+        if Li_complete==1 && Li1==0 && Li2==0 %åŒæ ¹ç”¨æˆ·ä¸ç¬¬ä¸€ä¸ªç”¨æˆ·å…¨ç¢°æ’
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -747,7 +737,7 @@ end
                 g1 = y1;
             end
         end
-        if (Li1==1 || Li2==1) && Li_complete==1 %Í¬¸ùÓÃ»§ÓëµÚÒ»¸öÓÃ»§È«Åö×²,ÇÒ»¹´æÔÚ²¿·ÖÅö×²
+        if (Li1==1 || Li2==1) && Li_complete==1 %åŒæ ¹ç”¨æˆ·ä¸ç¬¬ä¸€ä¸ªç”¨æˆ·å…¨ç¢°æ’,ä¸”è¿˜å­˜åœ¨éƒ¨åˆ†ç¢°æ’
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -759,7 +749,7 @@ end
                 g1 = y1;
             end
         end  
-        if Li1==1 && Li2==1 && Li_complete==0 %Í¬¸ùÓÃ»§´æÔÚÁ½²¿·ÖÅö×²
+        if Li1==1 && Li2==1 && Li_complete==0 %åŒæ ¹ç”¨æˆ·å­˜åœ¨ä¸¤éƒ¨åˆ†ç¢°æ’
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE') 
                 P = PR_ContrFactor_user(1)*PR;
@@ -783,20 +773,16 @@ end
     if SINR_sim > threshold
         Number = Number+1;
     end
-    if mod(r,1e3) == 0
-        disp([num2str(r) ' of ' num2str(nbrOfRealizations)]);
-    end
 end
 P_success(R) = Number/nbrOfRealizations;
-
-disp(['P_success of R = ' num2str(R) ' with (ESTIMATOR , angle_distribution):(' char(ESTIMATOR) ',' char(distribution) ')=' num2str(P_success(R))]);
+disp(['P_success of R = ' num2str(R) ' with ' char(ESTIMATOR) '=' num2str(P_success(R))]);
 end
 end
 end
 
  
-function [zcRootSequence] = CreatZC(SequenceLength,RootIndex)%Éú³ÉZCĞòÁĞ¸ùĞòÁĞ
-%Éú³ÉZCĞòÁĞ¸ùĞòÁĞ
+function [zcRootSequence] = CreatZC(SequenceLength,RootIndex)%ç”ŸæˆZCåºåˆ—æ ¹åºåˆ—
+%ç”ŸæˆZCåºåˆ—æ ¹åºåˆ—
 if nargin == 1
     RootIndex = SequenceLength-1;
 end
@@ -807,9 +793,9 @@ else
     zcRootSequence=exp(-1j*pi*RootIndex/SequenceLength*(n.*(n+1)));
 end
 end
-function [zcShiftSequence] = CreatZCcirshift(zcRootSequence,SequenceLength,shiftNum)%Éú³ÉZCĞòÁĞÑ­»·ÒÆÎ»ĞòÁĞ
-%Éú³ÉZCĞòÁĞÑ­»·ÒÆÎ»ĞòÁĞ
-Ncs = floor(SequenceLength/shiftNum);%Ñ­»·ÒÆÎ»¼ä¸ô
+function [zcShiftSequence] = CreatZCcirshift(zcRootSequence,SequenceLength,shiftNum)%ç”ŸæˆZCåºåˆ—å¾ªç¯ç§»ä½åºåˆ—
+%ç”ŸæˆZCåºåˆ—å¾ªç¯ç§»ä½åºåˆ—
+Ncs = floor(SequenceLength/shiftNum);%å¾ªç¯ç§»ä½é—´éš”
 zcShiftSequence = zeros(SequenceLength,shiftNum);
 for k = 0:shiftNum-1
 v =k*Ncs;
@@ -818,17 +804,17 @@ end
 end
 %% [2]Success Probability of Grant-Free Random Access With Massive MIMO
 function h_corr = corr_channel(M,nbrOfRealizations,UserNum,Q,d,phaS,phaA_upper)%correlated Rayleigh fading channel
-% M BSÌìÏßÊı
-% UserNum ÓÃ»§Êı
-% d ÌìÏß¾àÀë 
-% Q ¶à¾¶Êı
-% phaA_upper  the azimuth angle of the UE location ÉÏ½ç
+% M BSå¤©çº¿æ•°
+% UserNum ç”¨æˆ·æ•°
+% d å¤©çº¿è·ç¦» 
+% Q å¤šå¾„æ•°
+% phaA_upper  the azimuth angle of the UE location ä¸Šç•Œ
 % phaS  the angle spread
 h = zeros(M,nbrOfRealizations,UserNum);
 for user_n=1:UserNum
     for r = 1:nbrOfRealizations
         v=(randn(Q,1)+1i*randn(Q,1))/sqrt(2);
-        % And ¦ÕA and ¦ÕS are defined as the azimuth angle of the UE location and the angle spread
+        % And Ï†A and Ï†S are defined as the azimuth angle of the UE location and the angle spread
         phaA=2*phaA_upper*rand(1)-phaA_upper;
         AoA = phaS*rand(Q,1)+(phaA-phaS/2);
         a = zeros(M,Q);
@@ -848,12 +834,12 @@ else
     h_corr = h;
 end
 end
-%% [3]A Random Access Protocol for Pilot Allocation in Crowded Massive MIMO Systems  Ëæ»ú½ÓÈëÏà¹ØĞÅµÀ 
+%% [3]A Random Access Protocol for Pilot Allocation in Crowded Massive MIMO Systems  éšæœºæ¥å…¥ç›¸å…³ä¿¡é“ 
 function [h_corr,R] = RAcorr_channel(M,nbrOfRealizations,UserNum,correlationFactor,cellRadius)%correlated Rayleigh fading channel
-% M BSÌìÏßÊı
-% UserNum ÓÃ»§Êı
-% correlationFactor Ïà¹ØÒò×Ó
-% cellRadius Ğ¡Çø°ë¾¶
+% M BSå¤©çº¿æ•°
+% UserNum ç”¨æˆ·æ•°
+% correlationFactor ç›¸å…³å› å­
+% cellRadius å°åŒºåŠå¾„
 % userLocations = generatePointsHexagon([1,nbrOfRealizations,UserNum],cellRadius,0.1*cellRadius);
 % userAngles = angle(userLocations);
 userAngles = 2*pi*rand([1,nbrOfRealizations,UserNum])-pi;
@@ -875,45 +861,9 @@ else
     h_corr = h;
 end
 end
-
-function [h_corr, R] = corr_channel2(M, UserNum, ASDdeg, nbrOfRealizations, distribution)
-% Function to generate the channels according to the book "Massive MIMO
-% Networks" by E. BjÃ¶rnson, J. Hoydis and L. Sanguinetti. 
-userAngles = 2*pi*rand([1,nbrOfRealizations,UserNum])-pi;
-v = (randn(M,nbrOfRealizations,UserNum)+1i*randn(M,nbrOfRealizations,UserNum))/sqrt(2);
-h = zeros(M,nbrOfRealizations,UserNum);
-R = zeros(M,M,nbrOfRealizations,UserNum);
-%---------------------------------
-% Obtain covariance matrices
-%---------------------------------
-for j = 1:nbrOfRealizations
-    for userInd = 1:UserNum         
-        R(:,:,j,userInd) = functionRlocalscattering(M,userAngles(:,:,userInd),ASDdeg,1/2,distribution); %Covariance matrix of UE
-        h(:,j,userInd) = sqrtm(R(:,:,j,userInd))*v(:,j,userInd);
-    end
-end
-    
-    %Circular array
-    %     R1 = functionRlocalscatteringApproxUCA(M,angle1,ASDdeg);
-    %     R2 = functionRlocalscatteringApproxUCA(M,angle2,ASDdeg);
-
-%---------------------------------
-%Create channel matrices
-%---------------------------------
-if nbrOfRealizations == 1
-    h_corr = zeros(M,UserNum);
-    for user_n=1:UserNum
-        h_corr(:,user_n) = h(:,:,user_n);
-    end
-else
-    h_corr = h;
-end
-
-end
-
 function points = generatePointsHexagon(nbrOfPoints,radius,minDistance)
-%The hexagon Áù½ÇĞÎµÄ is divided into three rhombus. Each point is uniformly
-%distributed among these rhombus ÁâĞÎ£»Ğ±·½ĞÎ£» %
+%The hexagon å…­è§’å½¢çš„ is divided into three rhombus. Each point is uniformly
+%distributed among these rhombus è±å½¢ï¼›æ–œæ–¹å½¢ï¼› %
 whichRhombus = randi(3,nbrOfPoints);
 %Place the points uniformly distributed in a square
 xDim = radius*rand(nbrOfPoints);
@@ -931,7 +881,7 @@ if nargin>2
     end
 end
 end
-%% »­Í¼
+%% ç”»å›¾
 function  plot_snr_bler(SNR_Matrix,BLER_Matrix)
 % LineStyles='-bs -kv -ro -cs --bs --kv --ro --cs --md -gv -md -rp --bs --gv --rp --ko -m< -yd --bs -c> --gv --rp --co --m< --kd --y>';
  LineStyles='-bs --bs -gd -gd -kv --kv -ro --ro -b+ --b+ -g* -g* -kd --kd -rp --rp -cs --cs -mv --mv -md -rp --bs --gv --rp --ko -m< -yd --bs -c> --gv --rp --co --m< --kd --y>';
@@ -963,7 +913,7 @@ for i=1:strLen
 end
 end
 function myboldify(h,MarkerSize,YLabelFontSize,FontSize,LineWidth,LegendFontSize,TitleFontSize)
-%h  =gcf; % »ñµÃµ±Ç°figure ¾ä±ú£¬´ó¼ÒĞèÒªÓÃÕâ¸öÄ£°åÀ´»­Í¼£¬×ĞÏ¸µ÷ÕûĞ´³öµÄÎÄÕÂ²Å
+%h  =gcf; % è·å¾—å½“å‰figure å¥æŸ„ï¼Œå¤§å®¶éœ€è¦ç”¨è¿™ä¸ªæ¨¡æ¿æ¥ç”»å›¾ï¼Œä»”ç»†è°ƒæ•´å†™å‡ºçš„æ–‡ç« æ‰
 %FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 36; axis_ratio=1.5; %myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize);
 %  myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize)
 
@@ -1017,7 +967,7 @@ for i = 1:length(ha)
     
 end
 end
-%% ±£´æÎÄ¼ş
+%% ä¿å­˜æ–‡ä»¶
 function Save_link=Save_link_file(readFile,writeFile)
 fid = fopen(readFile);
 fid_write = fopen(writeFile,'w');
