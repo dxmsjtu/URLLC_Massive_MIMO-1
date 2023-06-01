@@ -1,36 +1,36 @@
 clc;clear all;close all; 
 savefile=1;   
 if savefile==1
-    filenameTmp ='test_corrChannel2_difangledistri_MMSE_PDRAsim_M96_SINR1_PA0.2_Shift32';%�ɽ�����ؼ�������Ϊ�ļ���
+    filenameTmp ='test_corrChannel2_difangledistri_MMSE_PDRAsim_M96_SINR1_PA0.2_Shift32';%可将仿真关键参数作为文件名
     mkdir_str=strcat('.\Simulation\',filenameTmp);
-    mkdir(mkdir_str);%һ���оͻ��ڵ�ǰ�ļ����´���simulation�ļ���
+    mkdir(mkdir_str);%一运行就会在当前文件夹下创建simulation文件夹
     mkdir_str1 =strcat(mkdir_str,'\');
-    filenameTmp1= filenameTmp;%�����ļ��ı��������
+    filenameTmp1= filenameTmp;%配置文件的保存的名字
     mkdir_str =strcat(mkdir_str1,filenameTmp1);
     mkdir_str =strcat(mkdir_str,'.m');
     Save_link1=Save_link_file('mainZCAccess_6_2_dai.m',mkdir_str);%
 end
 tic 
-System_type_range=[1];% 0: ԭ��ÿ֡�û��̶�UserNum = K0*pA��  1�� ÿ֡��ͬ�û�  ��Ŭ���ֲ�   
+System_type_range=[1];% 0: 原来每帧用户固定UserNum = K0*pA，  1： 每帧不同用户  伯努利分布   
 nbrOfRealizations_range = [1e4]; 
-R_range = [1:1:5]+0;%ZC�����и��� 256 512
+R_range = [1:1:5]+0;%ZC根序列个数 256 512
 reMethod_range = [0];comSINR_range = [0:1:0];
 pA_range = [20]/10000; M_range = [96]; 
 Weight_range = [1]; SNR_range = [1:1:1];
 SNR_Two_offset_range = [0];K0values_range = [10000]; 
 RepPaper_range = [0]; SequenceLength_range = [839];  %S
-Sequence_offset_range = [0];SINR_range = [1:1:1]; %��ֵ 
-PR_ContrFactor_range=[0] ;% �������ӷ�Χ   0db �� ���빦��  ��ѡ2db
-L_range = [32];% 9 18 32 64shift���� 
-sim = 1;   % 2: ��������+�������ݣ�1�����棻0�����ۣ�
+Sequence_offset_range = [0];SINR_range = [1:1:1]; %阈值 
+PR_ContrFactor_range=[0] ;% 功控因子范围   0db 是 理想功控  ，选2db
+L_range = [32];% 9 18 32 64shift个数 
+sim = 1;   % 2: 理论数据+仿真数据；1：仿真；0：理论；
 ESTIMATOR_range = {'MMSE'}; %what estimator to use [LS, MMSE]
 channel_range = [4];% channel = 1,iid ;% channel = 2,corr; % channel = 3,Random Access corr % 4.Massive MIMO Networks equ(2.23) 
 ASDdeg_range = [25]; %angular delay spread 
 distribution_range = {'Gaussian','Uniform','Laplace'}; % angular distribution
 phaS_range = [pi/9];phaA_upper_range = [pi/3]; % Debug parameter of channel = 2
-correlationFactor_range=[6]/10; % Debug parameter of channel = 3
-method_range = [2]; % method = 1,��һ���� %  method = 2,��������
-SubcaseNum = 0;  % ������㣻dxm7311
+correlationFactor_range=[ 6]/10; % Debug parameter of channel = 3
+method_range = [2]; % method = 1,传一个码 %  method = 2,传两个码
+SubcaseNum = 0;  % 方便计算；dxm7311
 Default = 0;Dofor = 0; SumIndex =0;RandomSeed =0; cellRadius=250;
 tic
 for System_type=System_type_range
@@ -39,40 +39,40 @@ for pA = pA_range  for M = M_range  for Weight = Weight_range for SNR = SNR_rang
 for SNR_Two_offset = SNR_Two_offset_range for K0_range = K0values_range
 for RepPaper = RepPaper_range for SequenceLength = SequenceLength_range 
 for Sequence_offset = Sequence_offset_range for SINR = SINR_range 
-for PR_ContrFactor=PR_ContrFactor_range;%  0 (prefect�ȹ���PR=1), 5  10
+for PR_ContrFactor=PR_ContrFactor_range;%  0 (prefect等功率PR=1), 5  10
 for L = L_range for ESTIMATOR = ESTIMATOR_range for channel = channel_range 
 for ASDdeg = ASDdeg_range for distribution = distribution_range;
 for phaS = phaS_range for phaA_upper = phaA_upper_range for correlationFactor = correlationFactor_range
 for method = method_range
-if RandomSeed ==0 rand('state',12345);  randn('state',12345*3);  end% ��֤ÿ��SNRѭ������ʼ���Ӷ�һ��
+if RandomSeed ==0 rand('state',12345);  randn('state',12345*3);  end% 保证每次SNR循环，初始种子都一样
 Para.System_type = System_type;
 Para.SubcaseNum = SubcaseNum; Para.Default =Default; Para.Dofor = Dofor;
-Para.reMethod=reMethod; Para.comSINR = comSINR;Para.pA = pA ; % �������
+Para.reMethod=reMethod; Para.comSINR = comSINR;Para.pA = pA ; % 激活概率
 Para.Weight = Weight;Para.SNR = SNR;
 Para.channel = channel;Para.ASDdeg = ASDdeg;Para.distribution = distribution;
 Para.phaS = phaS;Para.phaA_upper = phaA_upper;
 Para.correlationFactor = correlationFactor;Para.cellRadius = cellRadius;
-Para.SINR = SINR ; %��ֵ
+Para.SINR = SINR ; %阈值
 Para.PR_ContrFactor=PR_ContrFactor;
-Para.R_range = R_range;%ZC�����и���
-Para.L = L;% shift����
+Para.R_range = R_range;%ZC根序列个数
+Para.L = L;% shift个数
 Para.M = M ;   %Number of BS antennas
 Para.ESTIMATOR = ESTIMATOR;
 Para.SNR_Two_offset = SNR_Two_offset; 
 Para.K0_range = K0_range ; %[100 200 300 500 1000:5000:12000]; % user number
-Para.RepPaper = RepPaper;  % ��������ͼ5 of [1]
+Para.RepPaper = RepPaper;  % 再现文章图5 of [1]
 Para.SequenceLength = SequenceLength ;
 Para.Sequence_offset = Sequence_offset ; 
 
-if sim == 1 % ȫ����
-    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% ȫ����
+if sim == 1 % 全仿真
+    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% 全仿真
     DataAll = DataSim;
-elseif sim == 0 % ȫ����
+elseif sim == 0 % 全理论
     DataTheory = computeSuccessProbability_theory(method,Para,nbrOfRealizations);
     DataAll = DataTheory;
-elseif sim == 2 % ȫ����+ȫ����
+elseif sim == 2 % 全理论+全仿真
     DataTheory = computeSuccessProbability_theory(method,Para,nbrOfRealizations);
-    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% ȫ����
+    DataSim = computeSuccessProbability_sim(method,Para,nbrOfRealizations);% 全仿真
     DataAll = [DataTheory;DataSim];
 end
 SumIndex = SumIndex+1; 
@@ -84,13 +84,13 @@ end
 % DataMatrix
 toc; stop = 1;
 if savefile==1
-    % simulation�ļ��������ÿ�η�����  ,��  .mat�ļ�
+    % simulation文件夹里，保存每次仿真结果  ,成  .mat文件
     strsave= strcat('.\Simulation\',filenameTmp,'\');
     if SumIndex ==1
         filenameTmp1 = strcat(filenameTmp,'.mat');
     end
     strsave= strcat(strsave,filenameTmp1);
-    s=['save ' strsave];% ����.mat �ļ����Ժ�����������ٴ�ȷ��,�Ժ�һ��ע������ٴλ�ͼ��
+    s=['save ' strsave];% 保持.mat 文件，以后仿真结果可以再次确认,以后一定注意可以再次画图。
     eval(s);  
 end
 
@@ -129,7 +129,7 @@ end
 % % title_str = strcat('SINR =',num2str(title_SINR(i)),'dB');
 % % title(title_str);set(gca,'Fontname','Monospaced');
 % legend('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30');
-% h  =gcf; % ��õ�ǰfigure ����������Ҫ�����ģ������ͼ����ϸ����д�������²�
+% h  =gcf; % 获得当前figure 句柄，大家需要用这个模板来画图，仔细调整写出的文章才
 % MarkerSize=9; LineWidth =2; LineMethod =1; PlotMethod =1; FontSize=22;
 % YLabelFontSize =24;
 % FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 24; axis_ratio=1.5; 
@@ -183,14 +183,14 @@ end
 % plotFig = 0;
 % if plotFig ==1
 %      clear all; close all;
-%     filenameTmp ='test_cor_channel_151';%test_diff_channel_M test_M test_shift �ɽ����������Ϊ�ļ���
+%     filenameTmp ='test_cor_channel_151';%test_diff_channel_M test_M test_shift 可将仿真参数作为文件名
 %     mkdir_str=strcat('.\Simulation\',filenameTmp);
-%     mkdir(mkdir_str);%һ���оͻ��ڵ�ǰ�ļ����´���simulation�ļ���
+%     mkdir(mkdir_str);%一运行就会在当前文件夹下创建simulation文件夹
 %     mkdir_str1 =strcat(mkdir_str,'\');
 %     mkdir_str =strcat(mkdir_str1,filenameTmp);
 %     mkdir_str =strcat(mkdir_str,'.m');
 %     strsave= strcat('.\Simulation\',filenameTmp,'\');
-%     strsave= strcat(strsave,filenameTmp); s=['load ' strsave]; eval(s);% ����.mat �ļ����Ժ�����������ٴ�ȷ��,�Ժ�һ��ע������ٴλ�ͼ��
+%     strsave= strcat(strsave,filenameTmp); s=['load ' strsave]; eval(s);% 保持.mat 文件，以后仿真结果可以再次确认,以后一定注意可以再次画图。
 %    DataMatrix
 %     SNR_Matrix =R_range;
 %     CaseNum = length(method_range)*length(L_range)*length(pA_range);
@@ -209,7 +209,7 @@ end
 % %         title_str = strcat('SINR =',num2str(title_SINR(i)),'dB');
 % %         title(title_str);set(gca,'Fontname','Monospaced');
 %         legend('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30');
-%         h  =gcf; % ��õ�ǰfigure ����������Ҫ�����ģ������ͼ����ϸ����д�������²�
+%         h  =gcf; % 获得当前figure 句柄，大家需要用这个模板来画图，仔细调整写出的文章才
 %         MarkerSize=9; LineWidth =2; LineMethod =1; PlotMethod =1; FontSize=22;
 %         YLabelFontSize =24;
 %         FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 24; axis_ratio=1.5; %myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize);
@@ -224,7 +224,7 @@ function DataMatrix = computeSuccessProbability_theory(method,Para,nbrOfRealizat
 % [1]Jie Ding et al "Analysis of Non-Orthogonal Sequences for Grant-Free RA
 % With Massive MIMO"
 % clc;clear all;close all;
-% method_range = [1 2]; % "1":����[1];   "2":Proposed
+% method_range = [1 2]; % "1":文章[1];   "2":Proposed
 Weight = Para.Weight;SNR = Para.SNR ;
 Default = Para.Default;channel = Para.channel;
 phaS = Para.phaS ;phaA_upper = Para.phaA_upper;
@@ -234,26 +234,26 @@ comSINR = Para.comSINR;
 M = Para.M;   %Number of BS antennas
 SNR_Two_offset = Para.SNR_Two_offset; 
 K0_range = Para.K0_range; %[100 200 300 500 1000:5000:12000]; % user number
-pA = Para.pA; % �������
-R_range = Para.R_range;%ZC�����и���
-RepPaper = Para.RepPaper ;  % ��������ͼ5 of [1]
-L = Para.L;% shift����
+pA = Para.pA; % 激活概率
+R_range = Para.R_range;%ZC根序列个数
+RepPaper = Para.RepPaper ;  % 再现文章图5 of [1]
+L = Para.L;% shift个数
 SequenceLength = Para.SequenceLength;
 Sequence_offset = Para.Sequence_offset;
-SINR = Para.SINR; %��ֵ
+SINR = Para.SINR; %阈值
 SubcaseNum = Para.SubcaseNum;
 reMethod = Para.reMethod ;
 if  Default ==1
     M = 128; SNR_Two_offset = 0;
     K0_range = 10000; %[100 200 300 500 1000:5000:12000]; % user number
-    pA = 0.003; % �������
-    R_range = [1:4]+0;%ZC�����и���
-    RepPaper = 0 ;  % ��������ͼ5 of [1]
-    L_range = [9 18 32 64];% shift����
-    % L_range = [33 43 53 63 73];% shift����
+    pA = 0.003; % 激活概率
+    R_range = [1:4]+0;%ZC根序列个数
+    RepPaper = 0 ;  % 再现文章图5 of [1]
+    L_range = [9 18 32 64];% shift个数
+    % L_range = [33 43 53 63 73];% shift个数
     SequenceLength = 139;
     Sequence_offset = 1;
-    SINR_range = [3:1:3]; %��ֵ
+    SINR_range = [3:1:3]; %阈值
     SubcaseNum =1; 
 end
 sigma2 = 10^(-SNR/10);
@@ -275,13 +275,13 @@ for R = R_range
         N_range = 0:100;
     end
 %     P_N = BernoulliDistribution_Probabilities (K0,pA,N_range);
-%     sum(P_N); %�����û�����
+%     sum(P_N); %激活用户概率
     if method ==1
-        Q = R*L; % ��Ƶ��
+        Q = R*L; % 导频数
         alpha = 1-L/Q;
     end
     if method ==2
-        Q = R*L*(L-1)/2; % ��Ƶ��
+        Q = R*L*(L-1)/2; % 导频数
         alpha = 1-L/Q;
     end
     for N = N_range(2:end)
@@ -330,19 +330,19 @@ for R = R_range
                             e1 = n_hat/sqrt(SequenceLength*rhoR);
                         end
                     end
-                    if comSINR == 0% ��ʽ��1��
+                    if comSINR == 0% 公式（1）
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                         Denominator1 = PR*c0;Denominator2 = sigma2*abs(sum(conj(h_hat),1)).^2;SINR_sim = Numerator./(Denominator1+Denominator2);
                     end  
-                    if comSINR == 1% ��ʽ��1��
+                    if comSINR == 1% 公式（1）
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                         Denominator1 = PR*c0;Denominator2 = abs(sum(conj(h_hat).*n,1)).^2;SINR_sim = Numerator./(Denominator1+Denominator2);
                     end
-                    if comSINR ==2% ��ʽ��2��
+                    if comSINR ==2% 公式（2）
                         Denominator1 = PR*abs(sum(conj(e1).*h1,1)).^2;
                         a1 = repmat(conj(h1),[1 1 N-1]).*h(:,:,2:N);b1 = sum(a1,1); c1 = sum(abs(b1).^2,3);
                         Denominator2 = PR*c1;
@@ -362,10 +362,10 @@ for R = R_range
                     nchoose_k = factorial(N-1)/factorial(k)/factorial(N-1-k);
                     Pr_one_sim(k+1,1) = nchoose_k*(1-alpha)^(N-1-k)*alpha^k;
                 end
-                q_sim(N) = sum(Pr_one_sim.*P_SINR); % ԭʼ
+                q_sim(N) = sum(Pr_one_sim.*P_SINR); % 原始
             end
         end
-        %% ÿ���û�ѡ��������������
+        %% 每个用户选择两个正交序列
         if method == 2
             T = min(floor(1/4*SequenceLength/10^(SINR/10)),N-1);K_range = 0:T;
             p(N) = (1-1/Q)^(N-1);
@@ -419,7 +419,7 @@ for R = R_range
                             e1 = n_hat/sqrt(SequenceLength*rhoR);
                         end
                     end
-                    if comSINR == 0% ��ʽ��1��
+                    if comSINR == 0% 公式（1）
                         h_hat = h1+e1;
                         Numerator = PR*abs(sum(conj(h_hat).*h1,1)).^2;
                         a0 = repmat(conj(h_hat),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
@@ -446,7 +446,7 @@ for R = R_range
                                 g1_1 = sqrt(PR*SequenceLength/2)*h1+n;
                             end
                         end
-                        if comSINR == 0% ��ʽ��1��
+                        if comSINR == 0% 公式（1）
                             Numerator_0 = PR*abs(sum(conj(g1_0).*h1,1)).^2;
                             a0 = repmat(conj(g1_0),[1 1 N-1]).*h(:,:,2:N);b0 = sum(a0,1); c0 = sum(abs(b0).^2,3);
                             Denominator1_0 = PR*c0;Denominator2_0 = sigma2*abs(sum(conj(g1_0),1)).^2;
@@ -484,8 +484,8 @@ for R = R_range
         end
     end
     f = p.*q;
-    N_average = round(K0*pA);% ƽ�������û���
-    P_success(1,R) = f(N_average);% �ȶ�Nȡƽ�����ټ������
+    N_average = round(K0*pA);% 平均接入用户数
+    P_success(1,R) = f(N_average);% 先对N取平均，再计算概率
     if SubcaseNum == 2
         g = p.*q_sim; 
         P_success(2,R) = g(N_average);
@@ -515,8 +515,8 @@ end
 end
 
 function [P0,P1] = abc(M_range,L_range)
-% M_range �û���
-% L_range ��Ƶ��
+% M_range 用户数
+% L_range 导频数
 caseindex =0;
 for L = L_range
 for M = M_range
@@ -561,13 +561,13 @@ end
 function P_success = computeSuccessProbability_sim(method,Para,nbrOfRealizations)
 Default = Para.Default; M = Para.M;   %Number of BS antennas
 K0_range = Para.K0_range; %[100 200 300 500 1000:5000:12000]; % user number
-pA = Para.pA; % �������
-R_range = Para.R_range;%ZC�����и���
-L = Para.L;% shift����
+pA = Para.pA; % 激活概率
+R_range = Para.R_range;%ZC根序列个数
+L = Para.L;% shift个数
 SequenceLength = Para.SequenceLength;
 ESTIMATOR = Para.ESTIMATOR;
-SINR = Para.SINR; %��ֵ
-PR_Control_index=Para.PR_ContrFactor; % ��������
+SINR = Para.SINR; %阈值
+PR_Control_index=Para.PR_ContrFactor; % 功控因子
 SNR = Para.SNR ;channel = Para.channel; ASDdeg = Para.ASDdeg; distribution = Para.distribution;
 phaS = Para.phaS ;phaA_upper = Para.phaA_upper;
 correlationFactor = Para.correlationFactor ; cellRadius = Para.cellRadius ;
@@ -575,21 +575,21 @@ System_type=Para.System_type ;
 if  Default ==1
     
 end
-sigma2 = 10^(-SNR/10); % ��������
-rhoR = 10^(SNR/10);% ���书��
+sigma2 = 10^(-SNR/10); % 噪声功率
+rhoR = 10^(SNR/10);% 发射功率
 PR = rhoR*sigma2;  
 multipathNum = M/2;%path number 
 d=1/2;% antenna distance
-P_success = zeros(1,length(R_range)); % ��ʼ������ɹ�����
+P_success = zeros(1,length(R_range)); % 初始化接入成功概率
 PR_ContrFactor =10.^(-[-PR_Control_index:PR_Control_index]/10);%  
 for indProb = 1:length(K0_range)
 %     disp(['K0 values: ' num2str(indProb) ' out of ' num2str(length(K0_range))]);
     K0 = K0_range(indProb); % Extract current value of the number of inactive UEs
-%     UserNum = K0*pA; % �����û���
+%     UserNum = K0*pA; % 激活用户数
 if System_type==0;newUsersNum = repmat(K0*pA,nbrOfRealizations,1); 
-elseif System_type==1;newUsersNum = binornd(K0,pA,[nbrOfRealizations 1]);end % �����û���
+elseif System_type==1;newUsersNum = binornd(K0,pA,[nbrOfRealizations 1]);end % 激活用户数
 
-% ZC��Ƶ����
+% ZC导频构造
 for R = R_range
 pilot_pool = zeros(SequenceLength,L,R);
 for RootIndex = 1:R
@@ -599,27 +599,27 @@ for RootIndex = 1:R
 end
 
 if method ==1;    Pilot_combination = (1:L)';           end
-if method ==2;    Pilot_combination = nchoosek(1:L,2);  end % �Ӽ��� [1:L] ��ѡȡ 2 ��Ԫ�ص��������
+if method ==2;    Pilot_combination = nchoosek(1:L,2);  end % 从集合 [1:L] 中选取 2 个元素的所有组合
 Number = 0;warning('off');
 for r = 1:nbrOfRealizations 
-    UserNum=newUsersNum(r); % ÿһ֡�����û��� 
+    UserNum=newUsersNum(r); % 每一帧激活用户数 
 %     if PR_Control_index==0
 %         PR_ContrFactor_user=ones(1,UserNum);
 %     else
 %     PR_ContrFactor =10.^(-[-PR_Control_index:(PR_Control_index*2/UserNum):PR_Control_index]/10);% 
-%     PR_ContrFactor_user=PR_ContrFactor(1:UserNum);% ÿһ֡�û��Ĺ�������
+%     PR_ContrFactor_user=PR_ContrFactor(1:UserNum);% 每一帧用户的功控因子
 %     end
-    PR_ContrFactor_user=PR_ContrFactor(randi([1,length(PR_ContrFactor)],1,UserNum));% ÿһ֡�û��Ĺ�������
+    PR_ContrFactor_user=PR_ContrFactor(randi([1,length(PR_ContrFactor)],1,UserNum));% 每一帧用户的功控因子
     if method == 1  
         rootSelections = zeros(UserNum,1);pilotSelection = zeros(UserNum,1);
         rootSelections(1) = randperm(R,1);
         index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1) = Pilot_combination(index_SameRoot,:);
         Pilot_combination2 = Pilot_combination;
-%         Pilot_combination2(index) = [];% ɾ�����û�1��ͬ�ĵ�Ƶ
+%         Pilot_combination2(index) = [];% 删除与用户1相同的导频
         for user_n = 2:UserNum
             rootSelections(user_n,1) = randperm(R,1);
             if rootSelections(user_n,1) == rootSelections(1)
-                % ͬ���û����û�1ѡ��Ƶ��ͬ                
+                % 同根用户与用户1选择导频不同                
                 pilotSelection(user_n,:) = Pilot_combination2(randperm(size(Pilot_combination2,1),1),:);
             else
                 pilotSelection(user_n,:) = Pilot_combination(randperm(size(Pilot_combination,1),1),:);
@@ -628,11 +628,11 @@ for r = 1:nbrOfRealizations
     end
     if method == 2  
         rootSelections = zeros(UserNum,1);pilotSelection = zeros(UserNum,2);
-        % �û�1 ѡ��Ƶ
-        rootSelections(1) = randperm(R,1); % ������ѡ��
-        index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1,:) = Pilot_combination(index_SameRoot,:); % �����ӵ�Ƶѡ��
+        % 用户1 选导频
+        rootSelections(1) = randperm(R,1); % 根序列选择
+        index_SameRoot = randperm(size(Pilot_combination,1),1); pilotSelection(1,:) = Pilot_combination(index_SameRoot,:); % 两个子导频选择
         Pilot_combination2 = Pilot_combination;
-%         Pilot_combination2(index,:) = [];% ɾ�����û�1��ͬ�ĵ�Ƶ
+%         Pilot_combination2(index,:) = [];% 删除与用户1相同的导频
 
         for user_n = 2:UserNum
             rootSelections(user_n,1) = randperm(R,1);
@@ -652,7 +652,7 @@ for r = 1:nbrOfRealizations
         h_corr = corr_channel(M,1,UserNum,multipathNum,d,phaS,phaA_upper);
         h = h_corr;
     end
-    if channel == 3 %Random Access correlated Rayleigh fading channel��������������û�λ��
+    if channel == 3 %Random Access correlated Rayleigh fading channel，这里随机生成用户位置
         [h_corrRA, Rmatrix] = RAcorr_channel(M,1,UserNum,correlationFactor,cellRadius);
         Rmatrix = squeeze(Rmatrix(:,:,1,:));
         h = h_corrRA;
@@ -686,26 +686,26 @@ end
         first = firstUser_Pilot(1);second = firstUser_Pilot(2);root = firstUser_Pilot(3);
         c1 = pilot_pool(:,first,root);c2 = pilot_pool(:,second,root);
         c1 = c1/sqrt(2);c2 = c2/sqrt(2);
-        index_SameRoot = find(PilotIndex(:,3)== root);% ͬ���û�����
-        index_diffRoot = find(PilotIndex(:,3)~= root);% ��ͬ���û�����
-        pilotSelectSameRoot = pilotSelection(index_SameRoot(2:end),:); % ͬ���û���ѡ��Ƶ
-        %�ж�pilot����1��û2
+        index_SameRoot = find(PilotIndex(:,3)== root);% 同根用户索引
+        index_diffRoot = find(PilotIndex(:,3)~= root);% 不同根用户索引
+        pilotSelectSameRoot = pilotSelection(index_SameRoot(2:end),:); % 同根用户所选导频
+        %判断pilot中有1且没2
         component1 = (pilotSelectSameRoot(:, 1) == first & pilotSelectSameRoot(:, 2) ~= second)|(pilotSelectSameRoot(:, 2) == first & pilotSelectSameRoot(:, 1) ~= second);
-        Li1 = any(component1);   % �Ƿ���������û��������߼�ֵ������Ϊ1��������Ϊ0
-        index_component1 = find(component1 == 1);   % ��Ӧ�û�����
-        %�ж�pilot����2��û1
+        Li1 = any(component1);   % 是否存在这种用户，返回逻辑值，存在为1，不存在为0
+        index_component1 = find(component1 == 1);   % 对应用户索引
+        %判断pilot中有2且没1
         component2 = (pilotSelectSameRoot(:, 1) == second & pilotSelectSameRoot(:, 2) ~= first)|(pilotSelectSameRoot(:, 2) == second & pilotSelectSameRoot(:, 1) ~= first);
-        Li2 = any(component2);  % �Ƿ���������û��������߼�ֵ
-        index_component2 = find(component2 == 1);  % ��Ӧ�û�����
+        Li2 = any(component2);  % 是否存在这种用户，返回逻辑值
+        index_component2 = find(component2 == 1);  % 对应用户索引
         index_component = vertcat(index_component1, index_component2);
                 %Li1 = ismember(first,pilotSelectSameRoot);
-                %Li2 = ismember(second,pilotSelectSameRoot);%�ж�pilot����û��2����Lib=1,û��Lib=0
-        %�жϣ�1,2����û����pilot��ͬһ���г���
+                %Li2 = ismember(second,pilotSelectSameRoot);%判断pilot中有没有2，有Lib=1,没有Lib=0
+        %判断（1,2）有没有在pilot的同一行中出现
         [Li_complete,index_complete] = ismember([first second],pilotSelectSameRoot,'rows');
-        if Li1==0 && Li2==0 && Li_complete==0% ͬ���û����һ���û�����ײ
+        if Li1==0 && Li2==0 && Li_complete==0% 同根用户与第一个用户不碰撞
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
-                P = PR_ContrFactor_user(1)*PR; % ��ͬ�û����ʲ�һ���Ļ�Ҫ��һ��
+                P = PR_ContrFactor_user(1)*PR; % 不同用户功率不一样的话要改一下
                 Q = P*SequenceLength*Rmatrix(:,:,1)+sum(4*P*Rmatrix(:,:,index_diffRoot),3)+sigma2*eye(M);
                 R1Qinv = Rmatrix(:,:,1)/ Q;
                 g1 = sqrt(P)*sqrt(SequenceLength)*R1Qinv*y1;
@@ -714,7 +714,7 @@ end
             end
             
         end
-        if Li1==1 && Li2==0 && Li_complete==0%ͬ���û����һ���û���ײc1
+        if Li1==1 && Li2==0 && Li_complete==0%同根用户与第一个用户碰撞c1
             y1 = Y*conj(c2)/norm(c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -725,7 +725,7 @@ end
                 g1 = y1;
             end
         end
-        if Li1==0 && Li2==1 && Li_complete==0%ͬ���û����һ���û���ײc2
+        if Li1==0 && Li2==1 && Li_complete==0%同根用户与第一个用户碰撞c2
             y1 = Y*conj(c1)/norm(c1)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -736,7 +736,7 @@ end
                 g1 = y1;
             end
         end
-        if Li_complete==1 && Li1==0 && Li2==0 %ͬ���û����һ���û�ȫ��ײ
+        if Li_complete==1 && Li1==0 && Li2==0 %同根用户与第一个用户全碰撞
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -747,7 +747,7 @@ end
                 g1 = y1;
             end
         end
-        if (Li1==1 || Li2==1) && Li_complete==1 %ͬ���û����һ���û�ȫ��ײ,�һ����ڲ�����ײ
+        if (Li1==1 || Li2==1) && Li_complete==1 %同根用户与第一个用户全碰撞,且还存在部分碰撞
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE')
                 P = PR_ContrFactor_user(1)*PR;
@@ -759,7 +759,7 @@ end
                 g1 = y1;
             end
         end  
-        if Li1==1 && Li2==1 && Li_complete==0 %ͬ���û�������������ײ
+        if Li1==1 && Li2==1 && Li_complete==0 %同根用户存在两部分碰撞
             y1 = Y*conj(c1+c2)/norm(c1+c2)^2;
             if strcmp(ESTIMATOR, 'MMSE') 
                 P = PR_ContrFactor_user(1)*PR;
@@ -795,8 +795,8 @@ end
 end
 
  
-function [zcRootSequence] = CreatZC(SequenceLength,RootIndex)%����ZC���и�����
-%����ZC���и�����
+function [zcRootSequence] = CreatZC(SequenceLength,RootIndex)%生成ZC序列根序列
+%生成ZC序列根序列
 if nargin == 1
     RootIndex = SequenceLength-1;
 end
@@ -807,9 +807,9 @@ else
     zcRootSequence=exp(-1j*pi*RootIndex/SequenceLength*(n.*(n+1)));
 end
 end
-function [zcShiftSequence] = CreatZCcirshift(zcRootSequence,SequenceLength,shiftNum)%����ZC����ѭ����λ����
-%����ZC����ѭ����λ����
-Ncs = floor(SequenceLength/shiftNum);%ѭ����λ���
+function [zcShiftSequence] = CreatZCcirshift(zcRootSequence,SequenceLength,shiftNum)%生成ZC序列循环移位序列
+%生成ZC序列循环移位序列
+Ncs = floor(SequenceLength/shiftNum);%循环移位间隔
 zcShiftSequence = zeros(SequenceLength,shiftNum);
 for k = 0:shiftNum-1
 v =k*Ncs;
@@ -818,17 +818,17 @@ end
 end
 %% [2]Success Probability of Grant-Free Random Access With Massive MIMO
 function h_corr = corr_channel(M,nbrOfRealizations,UserNum,Q,d,phaS,phaA_upper)%correlated Rayleigh fading channel
-% M BS������
-% UserNum �û���
-% d ���߾��� 
-% Q �ྶ��
-% phaA_upper  the azimuth angle of the UE location �Ͻ�
+% M BS天线数
+% UserNum 用户数
+% d 天线距离 
+% Q 多径数
+% phaA_upper  the azimuth angle of the UE location 上界
 % phaS  the angle spread
 h = zeros(M,nbrOfRealizations,UserNum);
 for user_n=1:UserNum
     for r = 1:nbrOfRealizations
         v=(randn(Q,1)+1i*randn(Q,1))/sqrt(2);
-        % And ��A and ��S are defined as the azimuth angle of the UE location and the angle spread
+        % And φA and φS are defined as the azimuth angle of the UE location and the angle spread
         phaA=2*phaA_upper*rand(1)-phaA_upper;
         AoA = phaS*rand(Q,1)+(phaA-phaS/2);
         a = zeros(M,Q);
@@ -848,12 +848,12 @@ else
     h_corr = h;
 end
 end
-%% [3]A Random Access Protocol for Pilot Allocation in Crowded Massive MIMO Systems  �����������ŵ� 
+%% [3]A Random Access Protocol for Pilot Allocation in Crowded Massive MIMO Systems  随机接入相关信道 
 function [h_corr,R] = RAcorr_channel(M,nbrOfRealizations,UserNum,correlationFactor,cellRadius)%correlated Rayleigh fading channel
-% M BS������
-% UserNum �û���
-% correlationFactor �������
-% cellRadius С���뾶
+% M BS天线数
+% UserNum 用户数
+% correlationFactor 相关因子
+% cellRadius 小区半径
 % userLocations = generatePointsHexagon([1,nbrOfRealizations,UserNum],cellRadius,0.1*cellRadius);
 % userAngles = angle(userLocations);
 userAngles = 2*pi*rand([1,nbrOfRealizations,UserNum])-pi;
@@ -878,7 +878,7 @@ end
 
 function [h_corr, R] = corr_channel2(M, UserNum, ASDdeg, nbrOfRealizations, distribution)
 % Function to generate the channels according to the book "Massive MIMO
-% Networks" by E. Björnson, J. Hoydis and L. Sanguinetti. 
+% Networks" by E. Bj枚rnson, J. Hoydis and L. Sanguinetti. 
 userAngles = 2*pi*rand([1,nbrOfRealizations,UserNum])-pi;
 v = (randn(M,nbrOfRealizations,UserNum)+1i*randn(M,nbrOfRealizations,UserNum))/sqrt(2);
 h = zeros(M,nbrOfRealizations,UserNum);
@@ -912,8 +912,8 @@ end
 end
 
 function points = generatePointsHexagon(nbrOfPoints,radius,minDistance)
-%The hexagon �����ε� is divided into three rhombus. Each point is uniformly
-%distributed among these rhombus ���Σ�б���Σ� %
+%The hexagon 六角形的 is divided into three rhombus. Each point is uniformly
+%distributed among these rhombus 菱形；斜方形； %
 whichRhombus = randi(3,nbrOfPoints);
 %Place the points uniformly distributed in a square
 xDim = radius*rand(nbrOfPoints);
@@ -931,7 +931,7 @@ if nargin>2
     end
 end
 end
-%% ��ͼ
+%% 画图
 function  plot_snr_bler(SNR_Matrix,BLER_Matrix)
 % LineStyles='-bs -kv -ro -cs --bs --kv --ro --cs --md -gv -md -rp --bs --gv --rp --ko -m< -yd --bs -c> --gv --rp --co --m< --kd --y>';
  LineStyles='-bs --bs -gd -gd -kv --kv -ro --ro -b+ --b+ -g* -g* -kd --kd -rp --rp -cs --cs -mv --mv -md -rp --bs --gv --rp --ko -m< -yd --bs -c> --gv --rp --co --m< --kd --y>';
@@ -963,7 +963,7 @@ for i=1:strLen
 end
 end
 function myboldify(h,MarkerSize,YLabelFontSize,FontSize,LineWidth,LegendFontSize,TitleFontSize)
-%h  =gcf; % ��õ�ǰfigure ����������Ҫ�����ģ������ͼ����ϸ����д�������²�
+%h  =gcf; % 获得当前figure 句柄，大家需要用这个模板来画图，仔细调整写出的文章才
 %FontSize= 24 ; LineWidth = 3;TitleFontSize = 20; LegendFontSize = 36; axis_ratio=1.5; %myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize);
 %  myboldify(h,FontSize,LineWidth,LegendFontSize,TitleFontSize)
 
@@ -1017,7 +1017,7 @@ for i = 1:length(ha)
     
 end
 end
-%% �����ļ�
+%% 保存文件
 function Save_link=Save_link_file(readFile,writeFile)
 fid = fopen(readFile);
 fid_write = fopen(writeFile,'w');
