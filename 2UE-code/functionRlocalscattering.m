@@ -78,7 +78,7 @@ for column = 1:M
         limits = sqrt(3)*ASD;
         
         %Define integrand of (2.23)
-        F = @(Delta)exp(1i*2*pi*distance*sin(theta+Delta))/(2*limits);
+        F = @(Delta)exp(1i*2*pi*distance*sin(theta+Delta))/(2*limits);   % equ.38 of paper
         
         %Compute the integral in (2.23) over the entire interval
         firstRow(column) = integral(F,-limits,limits);

@@ -28,12 +28,12 @@ for j = 1:nbrOfRealizations
     ghat = g_hat_list(j);
     sigma_sq = sigma_sq_list(j);
     % Parameters related to the CGF of the info density:
-    betaA_ul = s*rho*abs(g-ghat)^2 + s*sigma_sq;
-    betaB_ul = s*(rho*abs(g)^2 + sigma_sq) / (1+s*rho*abs(ghat)^2);
-    sigma_v = abs(g)^2 *rho + sigma_sq;
+    betaA_ul = s*rho*abs(g-ghat)^2 + s*sigma_sq;  % equ.12 of paper
+    betaB_ul = s*(rho*abs(g)^2 + sigma_sq) / (1+s*rho*abs(ghat)^2); % equ.13 of paper
+    sigma_v = abs(g)^2 *rho + sigma_sq;  % 
     gamma = s/(1 + s*rho*abs(ghat)^2);
-    nu_ul = s*gamma*abs(sigma_v - rho* g'*ghat)^2 / (betaA_ul*betaB_ul);
-    preterm_ul = log(1+s*rho * abs(ghat)^2);
+    nu_ul = s*gamma*abs(sigma_v - rho* g'*ghat)^2 / (betaA_ul*betaB_ul); % equ.61 or equ.14 of paper
+    preterm_ul = log(1+s*rho * abs(ghat)^2);  % the first term of equ.16 of paper
     % Compute the saddlepoint approximation
     epsilon(j) = saddlepoint_approximation(n, rate, betaA_ul, betaB_ul, nu_ul, preterm_ul);
 end
@@ -41,8 +41,9 @@ end
 
 function [error_prob, s_val, epsilon] = searchForCandidateS(f, eps_target, s_start)
 % Function to optimize over the parameter s:
-
-s_list = fliplr(logspace(-8,log10(s_start),50));
+% 计算每个s对应的误差概率epsilon。如果epsilon低于目标误差概率eps_target，
+% 则函数将返回该s值。如果没有找到满足要求的s值，则返回具有最低epsilon的s值。
+s_list = fliplr(logspace(-8,log10(s_start),50)); % 生成一个长度为50的向量，包含从10^(-8)到 s_start 的对数空间内的50个等距点,从大到小排序。
 s_list(s_list > s_start) = [];
 eps_debug = [];
 

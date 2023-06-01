@@ -18,7 +18,7 @@ function sectionIII_fig2_RCUs_saddlepoint(n, np, rho_db, b, angle2, Mlist, nbrOf
 % BS_CSI = [0,1]; 1: Perfect CSI at BS
 % UE_CSI = [0,1]; 1: Perfect CSI at UE
 %
- 
+clc;clear all; 
 DEBUG = 1;
 
 if DEBUG == 1
@@ -26,13 +26,15 @@ if DEBUG == 1
     np = 2; %number of pilots
     n = 300; %total number of channle uses
     b = 8*20; %information bits
-    rho_db = 10; %transmit power [dB]
-    angle2 = deg2rad(0:5:65); % angle of UE2 to BS
-    nbrOfRealizations=1e5; %number of saddlepoint realizations
+    rho_db = [-5:1:0]; %transmit power [dB]
+    angle2 = deg2rad(-10); % angle of UE2 to BS
+    nbrOfRealizations=1e4; %number of saddlepoint realizations
     Mlist = [100]; %the number of antennas considered
     COMBINER = 'MR'; %what combiner to use [MR, M-MMSE, RZF]
-    ESTIMATOR = 'MMSE'; %what estimator to use [LS, MMSE]
-    PILOT_CONTAMINATION = 1; %Let the two UEs use the same pilot sequence
+    ESTIMATOR = {'MMSE','LS'}; %what estimator to use [LS, MMSE]
+    PILOT = 1;%0 => conventional ,1 => pd
+    PILOT_CONTAMINATION = 1; %Let the two UEs use the same pilot sequence,for conventional 
+    PILOT_Situation = [3]; % for pdra,1:complete collide;2:component collide,3:no collide
     NO_OF_UEs = 2; % 1 or 2
     UNCORRELATED = 0; %0 = spatial correlation
     BS_CSI = 0; %1 => Perfect CSI at BS
@@ -44,155 +46,194 @@ ASDdeg = 25; %angular delay spread
 
 n_ul = (n-np)/2; % available channel uses for the UL
 n_dl = n_ul; % available channel uses for the DL
-rho = 10^(rho_db/10);  %transmit power [linear]
+rho = 10.^(rho_db/10);  %transmit power [linear]
 
 format long
-avg_error_ul = inf(length(angle2),length(Mlist));
-avg_error_dl = inf(length(angle2),length(Mlist));
-avg_error = inf(length(angle2),length(Mlist), 2);
-s_val_ul = nan(length(angle2), length(Mlist));
-s_val_dl=nan(length(angle2), length(Mlist));
+% avg_error_ul = inf(length(angle2),length(Mlist));
+% avg_error_dl = inf(length(angle2),length(Mlist));
+% avg_error = inf(length(angle2),length(Mlist), 2);
+% s_val_ul = nan(length(angle2), length(Mlist));
+% s_val_dl=nan(length(angle2), length(Mlist));
+avg_error_ul = inf(length(rho_db),length(Mlist));
+avg_error_dl = inf(length(rho_db),length(Mlist));
+avg_error = inf(length(rho_db),length(Mlist), 2);
+s_val_ul = nan(length(rho_db), length(Mlist));
+s_val_dl=nan(length(rho_db), length(Mlist));
 
 % For each angle:
-for j = 1:length(angle2)
-    
-    M=Mlist; %consider current M
-    
-    [H1, H2, R1, R2] = generateChannel(M, angle1, angle2(j), ASDdeg, nbrOfRealizations,UNCORRELATED);
-    
-    if BS_CSI == 0
-        [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2, PILOT_CONTAMINATION, ESTIMATOR);      
-    else
-        hhat1 = H1; C1 = zeros(M,M); hhat2 = H2; C2 = zeros(M,M); %Perfect CSI at BS
-    end
-    
-    disp('Combiner')
-    tic
-    [v1, v2] = createCombiners(rho, hhat1, hhat2, C1, C2, COMBINER, NO_OF_UEs);
-    toc
-    %-----------------------------------------------
-    % UPLINK
-    %-----------------------------------------------
-    % Initializations:
-    sigma_sq_list = nan(1,nbrOfRealizations);
-    g_list = nan(1,nbrOfRealizations);
-    g_hat_list= nan(1,nbrOfRealizations);
-    % Computation of effective noise, effective channel and channel est.
-    for indx = 1:nbrOfRealizations
-        v1_cur =  v1(:,indx);
-        if NO_OF_UEs == 1
-            sigma_sq_list(indx) = v1_cur'*v1_cur;
-        elseif NO_OF_UEs==2
-            sigma_sq_list(indx) = rho*abs(v1_cur' * H2(:,indx))^2 + v1_cur'*v1_cur;
+for ESTIMATOR_cur = ESTIMATOR
+    for PILOT_Situation_cur = PILOT_Situation
+        for j = 1:length(angle2)
+            for i = 1:length(rho)
+                M=Mlist; %consider current M
+
+                [H1, H2, R1, R2] = generateChannel(M, angle1, angle2(j), ASDdeg, nbrOfRealizations,UNCORRELATED);
+
+                if BS_CSI == 0 
+                    [hhat1, hhat2, C1, C2] =  estimateChannel(rho(i), np, H1, H2, R1, R2, PILOT, PILOT_CONTAMINATION, PILOT_Situation_cur, ESTIMATOR_cur);      
+                else
+                    hhat1 = H1; C1 = zeros(M,M); hhat2 = H2; C2 = zeros(M,M); %Perfect CSI at BS
+                end
+            %     if BS_CSI == 0 
+            %         [hhat1, hhat2, C1, C2] =  estimateChannel(rho(i), np, H1, H2, R1, R2, PILOT_CONTAMINATION, ESTIMATOR_cur);      
+            %     else
+            %         hhat1 = H1; C1 = zeros(M,M); hhat2 = H2; C2 = zeros(M,M); %Perfect CSI at BS
+            %     end
+
+                disp('Combiner')
+                tic
+                [v1, v2] = createCombiners(rho(i), hhat1, hhat2, C1, C2, COMBINER, NO_OF_UEs);
+                toc
+                %-----------------------------------------------
+                % UPLINK
+                %-----------------------------------------------
+                % Initializations:
+                sigma_sq_list = nan(1,nbrOfRealizations);  %  sigma^2 of equ.33 of paper 
+                g_list = nan(1,nbrOfRealizations);
+                g_hat_list= nan(1,nbrOfRealizations);
+                % Computation of effective noise, effective channel and channel est.
+                for indx = 1:nbrOfRealizations
+                    v1_cur =  v1(:,indx);
+                    if NO_OF_UEs == 1
+                        sigma_sq_list(indx) = v1_cur'*v1_cur;
+                    elseif NO_OF_UEs==2
+                        sigma_sq_list(indx) = rho(i)*abs(v1_cur' * H2(:,indx))^2 + v1_cur'*v1_cur;
+                    end
+                    g_list(indx) = v1_cur' * H1(:,indx) ;
+                    g_hat_list(indx) = v1_cur' * hhat1(:,indx);
+                end
+                % Computation of the UL average error probability using the saddlepoint approx:
+                %[avg_error_ul(j), s_val_ul(j)] = sec3_fig2_getErrorProbability(n_ul, rho(i), b, g_list, g_hat_list, sigma_sq_list, nbrOfRealizations, 1);
+                [avg_error_ul(i), s_val_ul(i)] = sec3_fig2_getErrorProbability(n_ul, rho(i), b, g_list, g_hat_list, sigma_sq_list, nbrOfRealizations, 1);
+                %disp(['UL error probability for (angle2, M,pilot ,method) = (' num2str(rad2deg(angle2(j))) ',' num2str(M) ',' num2str(PILOT_Situation_cur) ',' char(ESTIMATOR_cur) '): ' num2str(avg_error_ul(j)) ' and s = ' num2str(s_val_ul(j))]);
+                disp(['UL error probability for (rho, M ,pilot ,method) = (' num2str(rho_db(i)) ',' num2str(M) ',' num2str(PILOT_Situation_cur) ',' char(ESTIMATOR_cur) '): ' num2str(avg_error_ul(i)) ' and s = ' num2str(s_val_ul(i))]);
+                toc
+                %-----------------------------------------------
+                % DOWNLINK
+                %-----------------------------------------------
+                tic
+                w1 = v1 ; %precoding vector for UE1
+                w2 = v2 ; %precoding vector for UE2
+                % Initializations:
+                sigma_sq_list_dl = nan(1,nbrOfRealizations); %  sigma^2 of equ.37 of paper 
+                g_list_dl = nan(1,nbrOfRealizations);
+                ghat_dl_list = nan(1,nbrOfRealizations);
+                % Computation of effective channel and channel estimation:
+                if UE_CSI == 0
+                    ghat_dl = mean(sum(conj(H1).*w1,1)); %UE uses channel hardening，用户知道期望�??
+                    ghat_dl_list = ghat_dl*ones(1,nbrOfRealizations);
+                elseif UE_CSI == 1
+                    ghat_dl_list = sum(conj(H1).*w1,1); %UE knows the precoded channel
+                elseif UE_CSI == 2
+                    ghat_dl_list = sum(conj(hhat1).*w1,1); %UE knows Hhat1 and assumes it to be correct
+                end
+                % Computation of effective noise:
+                for indx = 1:nbrOfRealizations
+                    if NO_OF_UEs == 1
+                        sigma_sq_list_dl(indx) =  1;
+                    elseif NO_OF_UEs==2
+                        sigma_sq_list_dl(indx) = rho(i)*abs(H1(:,indx)'*w2(:,indx))^2 + 1;
+                    end
+                    g_list_dl(indx) = H1(:,indx)'*w1(:,indx);
+                end
+                % Computation of the DL average error probability:
+                %[avg_error_dl(j) ,  s_val_dl(j)] = sec3_fig2_getErrorProbability(n_dl, rho(i), b, g_list_dl, ghat_dl_list, sigma_sq_list_dl, nbrOfRealizations, 1);
+                [avg_error_dl(i) ,  s_val_dl(i)] = sec3_fig2_getErrorProbability(n_dl, rho(i), b, g_list_dl, ghat_dl_list, sigma_sq_list_dl, nbrOfRealizations, 1);
+                %disp(['DL error probability for (angle2, M) = (' num2str(rad2deg(angle2(j))) ',' num2str(M) ',' num2str(PILOT_Situation_cur) ',' char(ESTIMATOR_cur) '): ' num2str(avg_error_dl(j)) ' and s = ' num2str(s_val_dl(j))]);
+                disp(['DL error probability for (rho, M ,pilot ,method) = (' num2str(rho_db(i)) ',' num2str(M) ',' num2str(PILOT_Situation_cur) ',' char(ESTIMATOR_cur) '): ' num2str(avg_error_dl(i)) ' and s = ' num2str(s_val_dl(i))]);
+                toc
+            end
         end
-        g_list(indx) = v1_cur' * H1(:,indx) ;
-        g_hat_list(indx) = v1_cur' * hhat1(:,indx);
+                if DEBUG == 1
+
+                    figure(1); hold on;
+                    %semilogy(rad2deg(angle2), avg_error_ul) ;
+                    semilogy(rho_db, avg_error_ul) ;
+                    
+                    set(gca, 'YScale', 'log')
+                    %xlabel('Angle of UE 2')
+                    xlabel('SNR')
+                    title('UL')
+                    %ylim([1e-5,1])
+
+                    figure(2); hold on;
+                    %semilogy(rad2deg(angle2), avg_error_dl) ;
+                    semilogy(rho_db, avg_error_dl) ;
+                    set(gca, 'YScale', 'log')
+                   %xlabel('Angle of UE 2')
+                    xlabel('SNR')
+                    title('DL')
+                    %ylim([1e-5,1])
+
+                end
+                avg_error(:,:,1) = avg_error_ul;
+                avg_error(:,:,2) = avg_error_dl;
+
+                avg_error(isinf(avg_error)) = nan;
+
+                %--------------------------------------------------------------
+                %   Save file
+                %--------------------------------------------------------------
+                data.np=np;
+                data.n = n;
+                data.rate =   b / n_ul;
+                data.snr_db = rho_db;
+                data.angle1 = angle1;
+                data.angle2 = angle2;
+                data.nbrOfRealizations = nbrOfRealizations;
+                data.Mlist = Mlist;
+                data.COMBINER = COMBINER;
+                data.ESTIMATOR_cur = ESTIMATOR_cur;
+                %data.PILOT_CONTAMINATION=PILOT_CONTAMINATION;
+                data.NO_OF_UEs = NO_OF_UEs;
+                data.UNCORRELATED = UNCORRELATED;
+                data.s_val_ul = s_val_ul;
+                data.avg_error_ul = avg_error(:,:,1);
+                data.s_val_dl = s_val_dl;
+                data.avg_error_dl = avg_error(:,:,2);
+
+                %filename = [char(ESTIMATOR_cur) '_' COMBINER '_UEs_' num2str(NO_OF_UEs) '_SNR_' num2str(rho_db) '_np_' num2str(np) '_n_' num2str(n) '_M_' num2str(Mlist) '.mat'];
+                filename = [char(ESTIMATOR_cur) '_' COMBINER '_UEs_' num2str(NO_OF_UEs) '_angle1_' num2str(angle1) '_angle2_' num2str(angle2) '_np_' num2str(np) '_n_' num2str(n) '_M_' num2str(Mlist) '.mat'];
+
+                if UNCORRELATED == 1
+                    filename = ['Uncorrelated_' filename];
+                else
+                    filename = ['SpatialCorrelation_' filename];
+                end
+                if PILOT == 1 % pd pilots
+                    if PILOT_Situation_cur == 1  % for pdra,1:complete collide;2:component collide,3:no collide
+                        filename = ['complete collide_' filename];
+                    elseif PILOT_Situation_cur == 2
+                        filename = ['component collide_' filename];
+                    else
+                        filename = ['no collide_' filename];
+                    end
+                    filename = ['pd pilots_' filename];
+                else
+                    if PILOT_CONTAMINATION == 1
+                        filename = ['pilot_contamination_' filename];
+                    else
+                        filename = ['no collide_' filename];
+                    end
+                    filename = ['conventional pilots_' filename];
+                end
+                if BS_CSI == 1
+                    filename = ['BS_CSI_' filename];
+                end
+
+                if UE_CSI == 1
+                    filename = ['UE_CSI_' filename];
+                elseif UE_CSI == 2
+                    filename = ['UE_iCSI_' filename];
+                end
+                %filename = ['RCUs_SP_ULA_Sweep_Angle_' filename];
+                filename = ['RCUs_SP_ULA_Sweep_SNR_' filename];
+                save(string(filename), 'data', '-v7.3');
+
     end
-    % Computation of the UL average error probability using the saddlepoint approx:
-    [avg_error_ul(j), s_val_ul(j)] = sec3_fig2_getErrorProbability(n_ul, rho, b, g_list, g_hat_list, sigma_sq_list, nbrOfRealizations, 1);
-    disp(['UL error probability for (angle2, M) = (' num2str(rad2deg(angle2(j))) ',' num2str(M) '): ' num2str(avg_error_ul(j)) ' and s = ' num2str(s_val_ul(j))]);
-    toc
-    %-----------------------------------------------
-    % DOWNLINK
-    %-----------------------------------------------
-    tic
-    w1 = v1 ; %precoding vector for UE1
-    w2 = v2 ; %precoding vector for UE2
-    % Initializations:
-    sigma_sq_list_dl = nan(1,nbrOfRealizations);
-    g_list_dl = nan(1,nbrOfRealizations);
-    ghat_dl_list = nan(1,nbrOfRealizations);
-    % Computation of effective channel and channel estimation:
-    if UE_CSI == 0
-        ghat_dl = mean(sum(conj(H1).*w1,1)); %UE uses channel hardening
-        ghat_dl_list = ghat_dl*ones(1,nbrOfRealizations);
-    elseif UE_CSI == 1
-        ghat_dl_list = sum(conj(H1).*w1,1); %UE knows the precoded channel
-    elseif UE_CSI == 2
-        ghat_dl_list = sum(conj(hhat1).*w1,1); %UE knows Hhat1 and assumes it to be correct
-    end
-    % Computation of effective noise:
-    for indx = 1:nbrOfRealizations
-        if NO_OF_UEs == 1
-            sigma_sq_list_dl(indx) =  1;
-        elseif NO_OF_UEs==2
-            sigma_sq_list_dl(indx) = rho*abs(H1(:,indx)'*w2(:,indx))^2 + 1;
-        end
-        g_list_dl(indx) = H1(:,indx)'*w1(:,indx);
-    end
-    % Computation of the DL average error probability:
-    [avg_error_dl(j) ,  s_val_dl(j)] = sec3_fig2_getErrorProbability(n_dl, rho, b, g_list_dl, ghat_dl_list, sigma_sq_list_dl, nbrOfRealizations, 1);
-    disp(['DL error probability for (angle2, M) = (' num2str(rad2deg(angle2(j))) ',' num2str(M) '): ' num2str(avg_error_dl(j)) ' and s = ' num2str(s_val_dl(j))]);
-    toc
-end
-if DEBUG == 1
     
-    figure(1); hold on;
-    semilogy(rad2deg(angle2), avg_error_ul) ;
-    set(gca, 'YScale', 'log')
-    xlabel('Angle of UE 2')
-    title('UL')
-    ylim([1e-5,1])
-    
-    figure(2); hold on;
-    semilogy(rad2deg(angle2), avg_error_dl) ;
-    set(gca, 'YScale', 'log')
-    xlabel('Angle of UE 2')
-    title('DL')
-    ylim([1e-5,1])
-    
+            
 end
-avg_error(:,:,1) = avg_error_ul;
-avg_error(:,:,2) = avg_error_dl;
-
-avg_error(isinf(avg_error)) = nan;
-
-%--------------------------------------------------------------
-%   Save file
-%--------------------------------------------------------------
-data.np=np;
-data.n = n;
-data.rate =   b / n_ul;
-data.snr_db = rho_db;
-data.angle1 = angle1;
-data.angle2 = angle2;
-data.nbrOfRealizations = nbrOfRealizations;
-data.Mlist = Mlist;
-data.COMBINER = COMBINER;
-data.ESTIMATOR = ESTIMATOR;
-data.PILOT_CONTAMINATION=PILOT_CONTAMINATION;
-data.NO_OF_UEs = NO_OF_UEs;
-data.UNCORRELATED = UNCORRELATED;
-data.s_val_ul = s_val_ul;
-data.avg_error_ul = avg_error(:,:,1);
-data.s_val_dl = s_val_dl;
-data.avg_error_dl = avg_error(:,:,2);
-
-filename = [ESTIMATOR '_' COMBINER '_UEs_' num2str(NO_OF_UEs) '_SNR_' num2str(rho_db) '_np_' num2str(np) '_n_' num2str(n) '_M_' num2str(Mlist) '.mat'];
-
-
-if UNCORRELATED == 1
-    filename = ['Uncorrelated_' filename];
-else
-    filename = ['SpatialCorrelation_' filename];
-end
-
-if PILOT_CONTAMINATION == 1
-    filename = ['pilot_contamination_' filename];
-end
-
-if BS_CSI == 1
-    filename = ['BS_CSI_' filename];
-end
-
-if UE_CSI == 1
-    filename = ['UE_CSI_' filename];
-elseif UE_CSI == 2
-    filename = ['UE_iCSI_' filename];
-end
-filename = ['RCUs_SP_ULA_Sweep_Angle_' filename];
-save(filename, 'data', '-v7.3');
-
 
 end
 
@@ -223,11 +264,11 @@ H2 = sqrt(0.5)*sqrtm(R2)*(randn(M,nbrOfRealizations)+1i*randn(M,nbrOfRealization
 
 end
 
-function [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2, PILOT_CONTAMINATION, ESTIMATOR)
+function [hhat1, hhat2, C1, C2] =  estimateChannel(rho, np, H1, H2, R1, R2, PILOT_CONTAMINATION, PILOT, PILOT_Situation, ESTIMATOR)
 % Function to estimate the channels according to the book "Massive MIMO
 % Networks" by E. Björnson, J. Hoydis and L. Sanguinetti. 
 
-sigma_ul = 1;
+sigma_ul = 1; % noise power
 M = size(H1,1);
 nbrOfRealizations = size(H1,2);
 %---------------------------------
@@ -236,27 +277,51 @@ nbrOfRealizations = size(H1,2);
 
 Np = sqrt(0.5)*(randn(M,nbrOfRealizations) + 1i*randn(M,nbrOfRealizations)); %noise on the channel estimation
 
-if PILOT_CONTAMINATION == 1
-    yp1 = rho*np*H1 + rho*np*H2 + sqrt(np*rho)*Np; %UE1 and UE 2 use the same pilot sequence
-    yp2=yp1;
-    Q1 = (rho*np*R1 + rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation (common for UE1 and UE2)
-    Q2=Q1;
-else
-    yp1 = rho*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
-    yp2 = rho*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
-    Q1 = (rho*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
-    Q2 = (rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2
+if PILOT == 1 % pd pilots
+    if PILOT_Situation == 1
+        yp1 = rho*np*H1 + rho*np*H2 + sqrt(np*rho)*Np; %UE1 and UE 2 complete collide
+        yp2=yp1;
+        Q1 = (rho*np*R1 + rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation (common for UE1 and UE2)
+        Q2=Q1;
+    elseif PILOT_Situation == 2
+        yp1 = (rho/sqrt(2))*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 componet collide
+        yp2 = (rho/sqrt(2))*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        Q1 = ((rho/2)*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
+        Q2 = ((rho/2)*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2
+    else
+        yp1 = rho*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 no collide
+        yp2 = rho*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        Q1 = (rho*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
+        Q2 = (rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2   
+    end
+else 
+    if PILOT_CONTAMINATION == 1
+        yp1 = rho*np*H1 + rho*np*H2 + sqrt(np*rho)*Np; %UE1 and UE 2 use the same pilot sequence
+        yp2=yp1;
+        Q1 = (rho*np*R1 + rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation (common for UE1 and UE2)
+        Q2=Q1;
+    else
+        yp1 = rho*np*H1 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        yp2 = rho*np*H2 + sqrt(np*rho)*Np;  % UE 1 and UE2 does not use the same pilot sequence
+        Q1 = (rho*np*R1 + sigma_ul*eye(M)); % matrix for MMSE estimation of H1
+        Q2 = (rho*np*R2 + sigma_ul*eye(M)); % matrix for MMSE estimation of H2
+    end
 end
+
 
 if strcmp(ESTIMATOR, 'MMSE')
     R1Qinv = R1 / Q1;
     R2Qinv = R2 / Q2;
     
-    C1 = R1 - np*rho*R1Qinv*R1; %covariance of Hhat1
+    C1 = R1 - np*rho*R1Qinv*R1; %covariance of Hhat1,PILOT_Situation == 2时后�?项要�?2,用MR还用不到
     C2 = R2 - np*rho*R2Qinv*R2; %covariance of Hhat2
-    
-    hhat1 = R1Qinv*yp1; %estimate H1
-    hhat2 = R2Qinv*yp2; %estimate H2
+    if PILOT_Situation == 2
+        hhat1 = R1Qinv*yp1/sqrt(2); %estimate H1
+        hhat2 = R2Qinv*yp2/sqrt(2); %estimate H2
+    else
+        hhat1 = R1Qinv*yp1; %estimate H1
+        hhat2 = R2Qinv*yp2; %estimate H2
+    end
 elseif strcmp(ESTIMATOR, 'LS')
     A_LS = 1/(rho*np);
     hhat1 = A_LS*yp1; %estimate H1
@@ -264,7 +329,7 @@ elseif strcmp(ESTIMATOR, 'LS')
     % The following can be wrongly normalized, but it is not used anyways
     productAR1 = sqrt(rho)*A_LS * R1; % This sqrt(rho) is introduced to normalize as in Luca's code. Maybe wrong.
     productAR2 = sqrt(rho)*A_LS * R2;
-    C1 = R1 - (productAR1+productAR1')*sqrt(rho)*np+np*A_LS*Q1*A_LS'; %covariance of Hhat1
+    C1 = R1 - (productAR1+productAR1')*sqrt(rho)*np+np*A_LS*Q1*A_LS'; %covariance of Hhat1 
     C2 = R2 - (productAR2+productAR2')*sqrt(rho)*np+np*A_LS*Q2*A_LS'; %covariance of Hhat2
 end
 end
